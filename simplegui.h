@@ -813,15 +813,18 @@ SgColor _sg_window_bg = 0x100000;
 
 SgColor _sg_color_text = 0xff8200;
 SgColor _sg_color_text_hover = 0xff8200;
+SgColor _sg_color_text_active = 0xff8200;
 
 SgColor _sg_color_sel_fg = 0x310000;
 SgColor _sg_color_sel_bg = 0xff8200;
 
 SgColor _sg_color_bg = 0x310000;
 SgColor _sg_color_bg_hover = 0x7b0000;
+SgColor _sg_color_bg_active = 0x510000;
 
 SgColor _sg_color_border = 0x7b0000;
 SgColor _sg_color_border_hover = 0xff8200;
+SgColor _sg_color_border_active = 0xff8200;
 
 int _sg_border_thickness = 2;
 int _font_height = 16;
@@ -885,18 +888,20 @@ void sg_label(SgRect d, const char *text, int flags)
 int sg_button(SgRect d, const char *text)
 {
 	int hover = sg_rect_mouse(d);
+	int active = sg_is_mouse_button_down(SG_BUTTON_LEFT);
 
-	sg_fill_rect(d, hover ? _sg_color_bg_hover : _sg_color_bg);
+	sg_fill_rect(d,
+		hover ? (active ? _sg_color_bg_active : _sg_color_bg_hover) : _sg_color_bg);
 
 	sg_draw_rect(d, _sg_border_thickness,
-		hover ? _sg_color_border_hover : _sg_color_border);
+		hover ? (active ? _sg_color_border_active : _sg_color_border_hover) : _sg_color_border);
 
 	sg_render_string(
 		d.x + d.w / 2 - sg_string_width(text) / 2,
 		d.y + d.h / 2 - _font_height / 2,
-		text, _sg_color_text);
+		text, hover ? (active ? _sg_color_text_active : _sg_color_text_hover) : _sg_color_text);
 
-	return 0;
+	return hover && sg_is_mouse_button_pressed(SG_BUTTON_LEFT);
 }
 
 /* ========================================================================== */

@@ -10,7 +10,6 @@ This project is work in progress, most of the functionality
 is still missing:
 
 - Elements
-	- Button
 	- Textbox
 	- Checkbox
 	- Slider
