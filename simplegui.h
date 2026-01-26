@@ -121,10 +121,12 @@ void sg_set_fontatlas(SgFontAtlas atlas);
 void sg_fontatlas_destroy(SgFontAtlas atlas);
 
 int sg_fontatlas_add_ascii(SgFontAtlas atlas, SgFont font);
-int sg_fontatlas_add_char(SgFontAtlas atlas, SgFont font, const char *utf8, uint8_t index);
+int sg_fontatlas_add_char(SgFontAtlas atlas, SgFont font, uint8_t c);
+int sg_fontatlas_add_utf8(SgFontAtlas atlas, SgFont font, const char *utf8, uint8_t index);
 int sg_fontatlas_add_icon(SgFontAtlas atlas, const char *file, uint8_t index);
 int sg_fontatlas_blit_surface(SgFontAtlas atlas, SgSurface surface, SgRect src, uint8_t index);
 void sg_fontatlas_add_binary(SgFontAtlas atlas, const uint8_t *bytes, SgSize size, uint8_t index);
+void sg_fontatlas_add_default_checkmark(SgFontAtlas atlas);
 void sg_fontatlas_update(SgFontAtlas atlas);
 
 /* font rendering */
@@ -166,19 +168,11 @@ void sg_draw_rect(SgRect rect, int border, SgColor color);
 
 /* Controls */
 /* All Controls are styled based on the same global theme */
-/* Controls return a bit field of events */
-
-/* SgControlState */
-enum
-{
-	SG_CLICKED = 1,
-	SG_CHANGED = 2,
-	SG_ENTER_PRESSED = 4
-};
+void sg_set_checkmark_char(uint8_t index);
 
 void sg_label(SgRect dimensions, const char *text, int flags);
 int sg_button(SgRect dimensions, const char *text);
-int sg_checkbox(SgRect dimensions, const char *text, bool *checked);
+int sg_checkbox(SgRect dimensions, bool *checked);
 int sg_slider(SgRect dimensions, float *value, float min, float max);
 int sg_textbox(SgRect dimensions, char *text, size_t capacity);
 int sg_select(SgRect dimensions, const char *text, int *active);
@@ -191,7 +185,10 @@ int sg_select(SgRect dimensions, const char *text, int *active);
 /* ========================================================================== */
 /* graphics global state */
 
+uint8_t _sg_char_checkmark = 0;
+
 extern const uint8_t _sg_default_font[];
+extern const uint8_t _sg_default_checkmark[];
 
 SgFontAtlas _sg_fontatlas_default = NULL;
 
@@ -297,6 +294,8 @@ int sg_fontatlas_blit_surface(SgFontAtlas atlas, SgSurface s, SgRect src, uint8_
 
 		for(int y = 0; y < src.h; ++y)
 		{
+			printf("\t");
+
 			int byte = 0;
 			int bit = 7;
 			for(int x = 0; x < src.w; ++x)
@@ -310,7 +309,7 @@ int sg_fontatlas_blit_surface(SgFontAtlas atlas, SgSurface s, SgRect src, uint8_
 				--bit;
 				if(bit < 0)
 				{
-					printf("\t0x%02X, ", byte);
+					printf("0x%02X, ", byte);
 					bit = 7;
 					byte = 0;
 				}
@@ -318,7 +317,7 @@ int sg_fontatlas_blit_surface(SgFontAtlas atlas, SgSurface s, SgRect src, uint8_
 
 			if((src.w & 3) != 0)
 			{
-				printf("\t0x%02X, ", byte);
+				printf("0x%02X, ", byte);
 			}
 
 			printf("/* ");
@@ -338,28 +337,31 @@ int sg_fontatlas_blit_surface(SgFontAtlas atlas, SgSurface s, SgRect src, uint8_
 	return SDL_BlitSurface(s, &src, atlas->Surface, &dst);
 }
 
-int sg_fontatlas_add_ascii(SgFontAtlas atlas, SgFont font)
+int sg_fontatlas_add_char(SgFontAtlas atlas, SgFont font, uint8_t c)
 {
 	SDL_Color color = { 255, 255, 255, 0 };
-	char letter[2];
-	letter[1] = '\0';
+	char letter[2] = { c, '\0' };
+	SDL_Surface *s = TTF_RenderText_Blended(font, letter, color);
+	int status = sg_fontatlas_blit_surface(atlas, s, sg_rect(0, 0, s->w, s->h), c);
+	SDL_FreeSurface(s);
+	return status;
+}
+
+int sg_fontatlas_add_ascii(SgFontAtlas atlas, SgFont font)
+{
 	int status = 0;
 	for(int i = 32; i <= 126; ++i)
 	{
-		letter[0] = i;
-		SDL_Surface *s = TTF_RenderText_Blended(font, letter, color);
-		if(sg_fontatlas_blit_surface(atlas, s, sg_rect(0, 0, s->w, s->h), i))
+		if(sg_fontatlas_add_char(atlas, font, i))
 		{
 			status = 1;
 		}
-
-		SDL_FreeSurface(s);
 	}
 
 	return status;
 }
 
-int sg_fontatlas_add_char(SgFontAtlas atlas, SgFont font, const char *utf8, uint8_t index)
+int sg_fontatlas_add_utf8(SgFontAtlas atlas, SgFont font, const char *utf8, uint8_t index)
 {
 	SDL_Color color = { 255, 255, 255, 0 };
 	SDL_Surface *s = TTF_RenderUTF8_Blended(font, utf8, color);
@@ -406,6 +408,13 @@ void sg_fontatlas_add_binary(SgFontAtlas atlas, const uint8_t *bytes, SgSize siz
 	}
 
 	atlas->CharDim[index] = size;
+}
+
+void sg_fontatlas_add_default_checkmark(SgFontAtlas atlas)
+{
+	sg_fontatlas_add_binary(atlas,
+		_sg_default_checkmark,
+		sg_size(16, 16), _sg_char_checkmark);
 }
 
 void sg_fontatlas_update(SgFontAtlas atlas)
@@ -601,6 +610,7 @@ void sg_init(int width, int height, const char *title)
 			sg_size(8, 18), c);
 	}
 
+	sg_fontatlas_add_default_checkmark(_sg_fontatlas_default);
 	sg_fontatlas_update(_sg_fontatlas_default);
 	_sg_fontatlas = _sg_fontatlas_default;
 }
@@ -906,10 +916,93 @@ int sg_button(SgRect d, const char *text)
 
 /* ========================================================================== */
 /* sg_checkbox */
+void sg_set_checkmark_char(uint8_t index)
+{
+	_sg_char_checkmark = index;
+}
+
+int sg_checkbox(SgRect d, bool *checked)
+{
+	int hover = sg_rect_mouse(d);
+	int active = sg_is_mouse_button_down(SG_BUTTON_LEFT);
+
+	sg_fill_rect(d,
+		hover ? (active ? _sg_color_bg_active : _sg_color_bg_hover) : _sg_color_bg);
+
+	sg_draw_rect(d, _sg_border_thickness,
+		hover ? (active ? _sg_color_border_active : _sg_color_border_hover) : _sg_color_border);
+
+	if(*checked)
+	{
+		int cw = sg_char_width(_sg_char_checkmark);
+		if(cw == 0)
+		{
+			/* If no checkmark available, fallback to square */
+			SgRect check = sg_rect(
+				d.x + d.w / 2 - 8,
+				d.y + d.h / 2 - 8,
+				16,
+				16);
+
+			sg_fill_rect(check,
+				hover ? (active ? _sg_color_text_active : _sg_color_text_hover) : _sg_color_text);
+		}
+		else
+		{
+			sg_render_char(
+				d.x + d.w / 2 - cw / 2,
+				d.y + d.h / 2 - _font_height / 2,
+				_sg_char_checkmark,
+				hover ? (active ? _sg_color_text_active : _sg_color_text_hover) : _sg_color_text);
+		}
+	}
+
+	int clicked = hover && sg_is_mouse_button_pressed(SG_BUTTON_LEFT);
+	if(clicked)
+	{
+		*checked = !*checked;
+	}
+
+	return clicked;
+}
+
+/* ========================================================================== */
+/* sg_slider */
+
+
+
+/* ========================================================================== */
+/* sg_select */
+
+
+
+/* ========================================================================== */
+/* sg_textbox */
+
 
 
 /* ========================================================================== */
 /* Default (fallback) font */
+const uint8_t _sg_default_checkmark[] =
+{
+	0x00, 0x00, /*                  */
+	0x00, 0x00, /*                  */
+	0x00, 0x01, /*                # */
+	0x00, 0x03, /*               ## */
+	0x00, 0x07, /*              ### */
+	0x00, 0x0E, /*             ###  */
+	0x00, 0x1C, /*            ###   */
+	0x80, 0x38, /* #         ###    */
+	0xC0, 0x70, /* ##       ###     */
+	0xE0, 0xE0, /* ###     ###      */
+	0x71, 0xC0, /*  ###   ###       */
+	0x3B, 0x80, /*   ### ###        */
+	0x1F, 0x00, /*    #####         */
+	0x0E, 0x00, /*     ###          */
+	0x04, 0x00, /*      #           */
+	0x00, 0x00, /*                  */
+};
+
 const uint8_t _sg_default_font[] =
 {
 	/* Char 32 (' ') */

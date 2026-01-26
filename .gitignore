@@ -3,3 +3,5 @@ examples/basic-app
 simplegui-test
 fontatlas.bmp
 examples/simple-button/simple-button
+examples/simple-checkbox/simple-checkbox
+textbox.c

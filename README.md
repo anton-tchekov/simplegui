@@ -9,16 +9,13 @@ add to a project.
 This project is work in progress, most of the functionality
 is still missing:
 
-- Elements
-	- Textbox
-	- Checkbox
-	- Slider
-	- Select
-
+- Textbox
 - Styling functions
 - Create example projects
 - Write documentation
 - Add screenshots
+- Slider
+- Select
 
 ## Features
 
