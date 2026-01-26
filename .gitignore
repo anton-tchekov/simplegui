@@ -4,4 +4,5 @@ simplegui-test
 fontatlas.bmp
 examples/simple-button/simple-button
 examples/simple-checkbox/simple-checkbox
+examples/simple-slider/simple-slider
 textbox.c

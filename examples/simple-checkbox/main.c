@@ -7,7 +7,7 @@ int main(void)
 {
 	bool checked = false;
 
-	sg_init(640, 480, "Simple Button");
+	sg_init(640, 480, "Simple Checkbox");
 	while(sg_running())
 	{
 		sg_begin();

@@ -173,7 +173,7 @@ void sg_set_checkmark_char(uint8_t index);
 void sg_label(SgRect dimensions, const char *text, int flags);
 int sg_button(SgRect dimensions, const char *text);
 int sg_checkbox(SgRect dimensions, bool *checked);
-int sg_slider(SgRect dimensions, float *value, float min, float max);
+int sg_slider(SgRect dimensions, double *value, double min, double max);
 int sg_textbox(SgRect dimensions, char *text, size_t capacity);
 int sg_select(SgRect dimensions, const char *text, int *active);
 
@@ -208,6 +208,9 @@ int _sg_num_keys = 0;
 const uint8_t *_sg_key_state = NULL;
 uint8_t *_sg_key_pressed = NULL;
 uint8_t *_sg_key_released = NULL;
+
+SgPoint _sg_selected_point;
+bool _sg_selected = false;
 
 #define SG_FONTDEBUG 1
 
@@ -700,6 +703,11 @@ static void sg_handle_mouse_button_down(SDL_Event *e)
 
 static void sg_handle_mouse_button_up(SDL_Event *e)
 {
+	if(e->button.button == SDL_BUTTON_LEFT)
+	{
+		_sg_selected = false;
+	}
+
 	_sg_mouse_button_released |= SDL_BUTTON(e->button.button);
 }
 
@@ -836,6 +844,19 @@ SgColor _sg_color_border = 0x7b0000;
 SgColor _sg_color_border_hover = 0xff8200;
 SgColor _sg_color_border_active = 0xff8200;
 
+SgColor _sg_color_thumb = 0x7b0000;
+SgColor _sg_color_thumb_hover = 0xff8200;
+SgColor _sg_color_thumb_active = 0xffb200;
+
+SgColor _sg_color_rail = 0x510000;
+SgColor _sg_color_rail_hover = 0x7b0000;
+SgColor _sg_color_rail_active = 0x9b0000;
+
+int _sg_slider_thumb_width = 6;
+int _sg_slider_rail_height = 6;
+
+int _sg_select_left_padding = 10;
+
 int _sg_border_thickness = 2;
 int _font_height = 16;
 
@@ -968,8 +989,48 @@ int sg_checkbox(SgRect d, bool *checked)
 
 /* ========================================================================== */
 /* sg_slider */
+double clamp(double x, double min, double max)
+{
+	if(x < min) { return min; }
+	if(x > max) { return max; }
+	return x;
+}
+
+int sg_slider(SgRect d, double *value, double min, double max)
+{
+	int hover = sg_rect_mouse(d);
+	int sel = _sg_selected && sg_rect_contains_point(d, _sg_selected_point);
+	int down = sg_is_mouse_button_down(SG_BUTTON_LEFT);
+
+	int pressed = hover && down;
+	SgPoint mouse = sg_mouse_position();
+	if(pressed)
+	{
+		_sg_selected = true;
+		_sg_selected_point = mouse;
+	}
+
+	int active = pressed || sel;
 
 
+
+	sg_fill_rect(sg_rect(d.x, d.y + d.h / 2 - _sg_slider_rail_height / 2, d.w, _sg_slider_rail_height),
+		active ? _sg_color_rail_active : (hover ? _sg_color_rail_hover : _sg_color_rail));
+
+	int thumb_pos = d.x + (*value - min) / (max - min) * (d.w - _sg_slider_thumb_width);
+	sg_fill_rect(sg_rect(thumb_pos, d.y, _sg_slider_thumb_width, d.h),
+		active ? _sg_color_thumb_active : (hover ? _sg_color_thumb_hover : _sg_color_thumb));
+
+	double prev_value = *value;
+	if(active)
+	{
+		double percent = (mouse.x - (d.x + _sg_slider_thumb_width / 2)) /
+			(double)(d.w - _sg_slider_thumb_width);
+		*value = min + clamp(percent, 0.0, 1.0) * (max - min);
+	}
+
+	return *value != prev_value;
+}
 
 /* ========================================================================== */
 /* sg_select */

@@ -9,13 +9,13 @@ add to a project.
 This project is work in progress, most of the functionality
 is still missing:
 
+- Select
 - Textbox
 - Styling functions
+- Add Asserts / Error checks where missing
 - Create example projects
 - Write documentation
 - Add screenshots
-- Slider
-- Select
 
 ## Features
 
@@ -38,7 +38,7 @@ load fonts from `.ttf` files (via SDL2_ttf)
 
 ## Installation
 
-Simply add `simplegui.h` to your project directory and add the following
+Add `simplegui.h` to your project directory and add the following
 two lines to one source file.
 
 ```c
