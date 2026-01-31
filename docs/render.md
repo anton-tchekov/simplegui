@@ -1,5 +1,28 @@
 # 2D Rendering functions
 
+## SgColor
+
+A `uint32_t` representing a RGB color.
+
+Definitions of all CSS colors are provided. For example:
+`SG_YELLOW = 0xFFFF00`, `SG_DARKRED = 0x8B0000`,
+`SG_TURQUOISE = 0x40E0D0` etc.
+
+### Get the red color component of a color (0-255)
+
+```c
+static inline int sg_color_r(SgColor color);
+```
+
+### Get the green color component of a color (0-255)
+
+`static inline int sg_color_g(SgColor color);`
+
+### Get the blue color component of a color (0-255)
+
+`static inline int sg_color_b(SgColor color);`
+
+
 ## SgPoint
 
 An alias for `SDL_Point`, a struct containing
