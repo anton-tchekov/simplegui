@@ -1,7 +1,7 @@
 # Memory Allocation Utility Functions
 
 SimpleGUI offers wrappers for memory allocation functions from
-`stdlib.h` which check for when a NULL pointer is returned,
+`stdlib.h` which check for when a `NULL` pointer is returned,
 and will `exit()` the application if a memory allocation
 fails.
 They also keep track of a counter of how many allocs and frees
@@ -35,9 +35,11 @@ Increments alloc count if `p` is `NULL`.
 Free pointer received from `sg_malloc`, `sg_calloc` or `sg_realloc`.
 Increments free count if `p` is not `NULL`.
 
-## Print the number of allocs and frees done with these functions
+## Print the number of allocs and frees
 
 `void sg_alloc_report(void);`
 
 Useful to make sure that all memory allocations are freed.
 Prints number of allocs and frees to stdout.
+Of course, only allocs made with `sg_malloc`, `sg_calloc` or `sg_realloc` and
+frees done with `sg_free` can be tracked.
