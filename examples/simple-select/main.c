@@ -17,7 +17,7 @@ int main(void)
 		"Orange"
 	};
 
-	sg_init(640, 480, "Select");
+	sg_init(640, 480, "Simple Select");
 	while(sg_running())
 	{
 		sg_begin();

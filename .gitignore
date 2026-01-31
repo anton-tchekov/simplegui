@@ -1,8 +1,9 @@
-examples/render-font
 examples/basic-app
 simplegui-test
 fontatlas.bmp
 examples/simple-button/simple-button
 examples/simple-checkbox/simple-checkbox
 examples/simple-slider/simple-slider
-textbox.c
+examples/change-font/change-font
+examples/simple-select/simple-select
+examples/simple-textbox/simple-textbox
