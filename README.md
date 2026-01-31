@@ -12,6 +12,7 @@ is still missing:
 - Select
 - Textbox
 - Styling functions
+
 - Add Asserts / Error checks where missing
 - Create example projects
 - Write documentation
@@ -65,5 +66,5 @@ project.
 The `examples/` directory contains code examples for how to use
 SimpleGUI.
 
-The `docs/` directory contains documentation for the functions
+The `docs/` directory contains [Documentation](docs/README.md) for the functions
 of SimpleGUI.

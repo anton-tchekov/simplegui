@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <assert.h>
 
 /* ========================================================================== */
 /* sdl2 includes */
@@ -12,9 +13,179 @@
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_image.h>
 
+/* Util */
+static inline int sg_min(int a, int b)
+{
+	return a < b ? a : b;
+}
+
+static inline int sg_max(int a, int b)
+{
+	return a > b ? a : b;
+}
+
+static inline double sg_fclamp(double x, double min, double max)
+{
+	if(x < min) { return min; }
+	if(x > max) { return max; }
+	return x;
+}
+
 /* SgColor */
 typedef uint32_t SgColor;
 SgColor sg_color(int r, int g, int b);
+
+enum
+{
+	SG_ALICEBLUE = 0XF0F8FF,
+	SG_ANTIQUEWHITE = 0XFAEBD7,
+	SG_AQUA = 0X00FFFF,
+	SG_AQUAMARINE = 0X7FFFD4,
+	SG_AZURE = 0XF0FFFF,
+	SG_BEIGE = 0XF5F5DC,
+	SG_BISQUE = 0XFFE4C4,
+	SG_BLACK = 0X000000,
+	SG_BLANCHEDALMOND = 0XFFEBCD,
+	SG_BLUE = 0X0000FF,
+	SG_BLUEVIOLET = 0X8A2BE2,
+	SG_BROWN = 0XA52A2A,
+	SG_BURLYWOOD = 0XDEB887,
+	SG_CADETBLUE = 0X5F9EA0,
+	SG_CHARTREUSE = 0X7FFF00,
+	SG_CHOCOLATE = 0XD2691E,
+	SG_CORAL = 0XFF7F50,
+	SG_CORNFLOWERBLUE = 0X6495ED,
+	SG_CORNSILK = 0XFFF8DC,
+	SG_CRIMSON = 0XDC143C,
+	SG_CYAN = 0X00FFFF,
+	SG_DARKBLUE = 0X00008B,
+	SG_DARKCYAN = 0X008B8B,
+	SG_DARKGOLDENROD = 0XB8860B,
+	SG_DARKGRAY = 0XA9A9A9,
+	SG_DARKGREY = 0XA9A9A9,
+	SG_DARKGREEN = 0X006400,
+	SG_DARKKHAKI = 0XBDB76B,
+	SG_DARKMAGENTA = 0X8B008B,
+	SG_DARKOLIVEGREEN = 0X556B2F,
+	SG_DARKORANGE = 0XFF8C00,
+	SG_DARKORCHID = 0X9932CC,
+	SG_DARKRED = 0X8B0000,
+	SG_DARKSALMON = 0XE9967A,
+	SG_DARKSEAGREEN = 0X8FBC8F,
+	SG_DARKSLATEBLUE = 0X483D8B,
+	SG_DARKSLATEGRAY = 0X2F4F4F,
+	SG_DARKSLATEGREY = 0X2F4F4F,
+	SG_DARKTURQUOISE = 0X00CED1,
+	SG_DARKVIOLET = 0X9400D3,
+	SG_DEEPPINK = 0XFF1493,
+	SG_DEEPSKYBLUE = 0X00BFFF,
+	SG_DIMGRAY = 0X696969,
+	SG_DIMGREY = 0X696969,
+	SG_DODGERBLUE = 0X1E90FF,
+	SG_FIREBRICK = 0XB22222,
+	SG_FLORALWHITE = 0XFFFAF0,
+	SG_FORESTGREEN = 0X228B22,
+	SG_FUCHSIA = 0XFF00FF,
+	SG_GAINSBORO = 0XDCDCDC,
+	SG_GHOSTWHITE = 0XF8F8FF,
+	SG_GOLD = 0XFFD700,
+	SG_GOLDENROD = 0XDAA520,
+	SG_GRAY = 0X808080,
+	SG_GREY = 0X808080,
+	SG_GREEN = 0X008000,
+	SG_GREENYELLOW = 0XADFF2F,
+	SG_HONEYDEW = 0XF0FFF0,
+	SG_HOTPINK = 0XFF69B4,
+	SG_INDIANRED = 0XCD5C5C,
+	SG_INDIGO = 0X4B0082,
+	SG_IVORY = 0XFFFFF0,
+	SG_KHAKI = 0XF0E68C,
+	SG_LAVENDER = 0XE6E6FA,
+	SG_LAVENDERBLUSH = 0XFFF0F5,
+	SG_LAWNGREEN = 0X7CFC00,
+	SG_LEMONCHIFFON = 0XFFFACD,
+	SG_LIGHTBLUE = 0XADD8E6,
+	SG_LIGHTCORAL = 0XF08080,
+	SG_LIGHTCYAN = 0XE0FFFF,
+	SG_LIGHTGOLDENRODYELLOW = 0XFAFAD2,
+	SG_LIGHTGRAY = 0XD3D3D3,
+	SG_LIGHTGREY = 0XD3D3D3,
+	SG_LIGHTGREEN = 0X90EE90,
+	SG_LIGHTPINK = 0XFFB6C1,
+	SG_LIGHTSALMON = 0XFFA07A,
+	SG_LIGHTSEAGREEN = 0X20B2AA,
+	SG_LIGHTSKYBLUE = 0X87CEFA,
+	SG_LIGHTSLATEGRAY = 0X778899,
+	SG_LIGHTSLATEGREY = 0X778899,
+	SG_LIGHTSTEELBLUE = 0XB0C4DE,
+	SG_LIGHTYELLOW = 0XFFFFE0,
+	SG_LIME = 0X00FF00,
+	SG_LIMEGREEN = 0X32CD32,
+	SG_LINEN = 0XFAF0E6,
+	SG_MAGENTA = 0XFF00FF,
+	SG_MAROON = 0X800000,
+	SG_MEDIUMAQUAMARINE = 0X66CDAA,
+	SG_MEDIUMBLUE = 0X0000CD,
+	SG_MEDIUMORCHID = 0XBA55D3,
+	SG_MEDIUMPURPLE = 0X9370DB,
+	SG_MEDIUMSEAGREEN = 0X3CB371,
+	SG_MEDIUMSLATEBLUE = 0X7B68EE,
+	SG_MEDIUMSPRINGGREEN = 0X00FA9A,
+	SG_MEDIUMTURQUOISE = 0X48D1CC,
+	SG_MEDIUMVIOLETRED = 0XC71585,
+	SG_MIDNIGHTBLUE = 0X191970,
+	SG_MINTCREAM = 0XF5FFFA,
+	SG_MISTYROSE = 0XFFE4E1,
+	SG_MOCCASIN = 0XFFE4B5,
+	SG_NAVAJOWHITE = 0XFFDEAD,
+	SG_NAVY = 0X000080,
+	SG_OLDLACE = 0XFDF5E6,
+	SG_OLIVE = 0X808000,
+	SG_OLIVEDRAB = 0X6B8E23,
+	SG_ORANGE = 0XFFA500,
+	SG_ORANGERED = 0XFF4500,
+	SG_ORCHID = 0XDA70D6,
+	SG_PALEGOLDENROD = 0XEEE8AA,
+	SG_PALEGREEN = 0X98FB98,
+	SG_PALETURQUOISE = 0XAFEEEE,
+	SG_PALEVIOLETRED = 0XDB7093,
+	SG_PAPAYAWHIP = 0XFFEFD5,
+	SG_PEACHPUFF = 0XFFDAB9,
+	SG_PERU = 0XCD853F,
+	SG_PINK = 0XFFC0CB,
+	SG_PLUM = 0XDDA0DD,
+	SG_POWDERBLUE = 0XB0E0E6,
+	SG_PURPLE = 0X800080,
+	SG_REBECCAPURPLE = 0X663399,
+	SG_RED = 0XFF0000,
+	SG_ROSYBROWN = 0XBC8F8F,
+	SG_ROYALBLUE = 0X4169E1,
+	SG_SADDLEBROWN = 0X8B4513,
+	SG_SALMON = 0XFA8072,
+	SG_SANDYBROWN = 0XF4A460,
+	SG_SEAGREEN = 0X2E8B57,
+	SG_SEASHELL = 0XFFF5EE,
+	SG_SIENNA = 0XA0522D,
+	SG_SILVER = 0XC0C0C0,
+	SG_SKYBLUE = 0X87CEEB,
+	SG_SLATEBLUE = 0X6A5ACD,
+	SG_SLATEGRAY = 0X708090,
+	SG_SLATEGREY = 0X708090,
+	SG_SNOW = 0XFFFAFA,
+	SG_SPRINGGREEN = 0X00FF7F,
+	SG_STEELBLUE = 0X4682B4,
+	SG_TAN = 0XD2B48C,
+	SG_TEAL = 0X008080,
+	SG_THISTLE = 0XD8BFD8,
+	SG_TOMATO = 0XFF6347,
+	SG_TURQUOISE = 0X40E0D0,
+	SG_VIOLET = 0XEE82EE,
+	SG_WHEAT = 0XF5DEB3,
+	SG_WHITE = 0XFFFFFF,
+	SG_WHITESMOKE = 0XF5F5F5,
+	SG_YELLOW = 0XFFFF00,
+	SG_YELLOWGREEN = 0X9ACD32
+};
 
 static inline int sg_color_r(SgColor color)
 {
@@ -108,6 +279,7 @@ void sg_font_destroy(SgFont font);
 /* SgFontAtalas */
 typedef struct
 {
+	int FontHeight;
 	int MaxCharSize;
 	SgSize CharDim[256];
 	SgSurface Surface;
@@ -116,7 +288,7 @@ typedef struct
 
 typedef SgFontAtlasInternal *SgFontAtlas;
 
-SgFontAtlas sg_font_atlas_create(int max_char_size);
+SgFontAtlas sg_font_atlas_create(int max_char_size, int font_height);
 void sg_set_fontatlas(SgFontAtlas atlas);
 void sg_fontatlas_destroy(SgFontAtlas atlas);
 
@@ -127,11 +299,14 @@ int sg_fontatlas_add_icon(SgFontAtlas atlas, const char *file, uint8_t index);
 int sg_fontatlas_blit_surface(SgFontAtlas atlas, SgSurface surface, SgRect src, uint8_t index);
 void sg_fontatlas_add_binary(SgFontAtlas atlas, const uint8_t *bytes, SgSize size, uint8_t index);
 void sg_fontatlas_add_default_checkmark(SgFontAtlas atlas);
+void sg_fontatlas_add_default_select(SgFontAtlas atlas);
+void sg_fontatlas_add_default_icons(SgFontAtlas atlas);
 void sg_fontatlas_update(SgFontAtlas atlas);
 
 /* font rendering */
 int sg_char_width(uint8_t c);
 int sg_string_width(const char *s);
+int sg_string_width_len(const char *s, size_t len);
 
 /* allocation */
 void *sg_malloc(size_t size);
@@ -162,6 +337,18 @@ int sg_is_key_down(int key);
 int sg_is_key_pressed(int key);
 int sg_is_key_released(int key);
 
+/* keyboard layouts */
+#define MOD_SHIFT          0x8000
+#define MOD_CTRL           0x4000
+#define MOD_OS             0x2000
+#define MOD_ALT            0x1000
+#define MOD_ALT_GR         0x800
+
+int sg_key_convert(int scancode, int mod);
+int sg_key_to_codepoint_german(int k);
+
+extern int (*sg_key_to_codepoint)(int);
+
 /* draw and fill rect */
 void sg_fill_rect(SgRect rect, SgColor color);
 void sg_draw_rect(SgRect rect, int border, SgColor color);
@@ -169,13 +356,22 @@ void sg_draw_rect(SgRect rect, int border, SgColor color);
 /* Controls */
 /* All Controls are styled based on the same global theme */
 void sg_set_checkmark_char(uint8_t index);
+void sg_set_select_char(uint8_t index);
+
+/* StringBuffer */
+typedef struct
+{
+	char *buffer;
+	size_t length;
+	size_t capacity;
+} SgStringBuffer;
 
 void sg_label(SgRect dimensions, const char *text, int flags);
 int sg_button(SgRect dimensions, const char *text);
 int sg_checkbox(SgRect dimensions, bool *checked);
 int sg_slider(SgRect dimensions, double *value, double min, double max);
 int sg_textbox(SgRect dimensions, char *text, size_t capacity);
-int sg_select(SgRect dimensions, const char *text, int *active);
+int sg_select(SgRect dimensions, const char *items[], size_t count, int *active);
 
 /* ========================================================================== */
 /* IMPLEMENTATION */
@@ -185,10 +381,14 @@ int sg_select(SgRect dimensions, const char *text, int *active);
 /* ========================================================================== */
 /* graphics global state */
 
-uint8_t _sg_char_checkmark = 0;
+uint8_t _sg_char_checkmark = 1;
+uint8_t _sg_char_select = 2;
 
 extern const uint8_t _sg_default_font[];
 extern const uint8_t _sg_default_checkmark[];
+extern const uint8_t _sg_default_select[];
+
+int (*sg_key_to_codepoint)(int) = sg_key_to_codepoint_german;
 
 SgFontAtlas _sg_fontatlas_default = NULL;
 
@@ -212,7 +412,7 @@ uint8_t *_sg_key_released = NULL;
 SgPoint _sg_selected_point;
 bool _sg_selected = false;
 
-#define SG_FONTDEBUG 1
+#define SG_FONTDEBUG 0
 
 /* ========================================================================== */
 /* font rendering */
@@ -226,7 +426,7 @@ void sg_font_destroy(SgFont font)
 	TTF_CloseFont(font);
 }
 
-SgFontAtlas sg_font_atlas_create(int max_char_size)
+SgFontAtlas sg_font_atlas_create(int max_char_size, int font_height)
 {
 	SgSurface surface = SDL_CreateRGBSurface(0,
 		max_char_size * 16, max_char_size * 16,
@@ -234,6 +434,7 @@ SgFontAtlas sg_font_atlas_create(int max_char_size)
 
 	SgFontAtlasInternal *atlas = sg_calloc(1, sizeof(SgFontAtlasInternal));
 	memset(atlas->CharDim, 0, sizeof(atlas->CharDim));
+	atlas->FontHeight = font_height;
 	atlas->MaxCharSize = max_char_size;
 	atlas->Surface = surface;
 	atlas->Texture = NULL;
@@ -420,6 +621,19 @@ void sg_fontatlas_add_default_checkmark(SgFontAtlas atlas)
 		sg_size(16, 16), _sg_char_checkmark);
 }
 
+void sg_fontatlas_add_default_select(SgFontAtlas atlas)
+{
+	sg_fontatlas_add_binary(atlas,
+		_sg_default_select,
+		sg_size(16, 16), _sg_char_select);
+}
+
+void sg_fontatlas_add_default_icons(SgFontAtlas atlas)
+{
+	sg_fontatlas_add_default_checkmark(atlas);
+	sg_fontatlas_add_default_select(atlas);
+}
+
 void sg_fontatlas_update(SgFontAtlas atlas)
 {
 	if(SG_FONTDEBUG)
@@ -455,15 +669,41 @@ void sg_render_string(int x, int y, const char *s, SgColor color)
 	}
 }
 
+void sg_render_string_len(int x, int y, const char *s, size_t len, SgColor color)
+{
+	size_t i = 0;
+	for(uint8_t c; (c = s[i]) && i < len; ++i)
+	{
+		x += sg_render_char(x, y, c, color);
+	}
+}
+
 int sg_char_width(uint8_t c)
 {
 	return _sg_fontatlas->CharDim[c].w;
+}
+
+int sg_char_height(uint8_t c)
+{
+	return _sg_fontatlas->CharDim[c].h;
 }
 
 int sg_string_width(const char *s)
 {
 	int w = 0;
 	for(uint8_t c; (c = *s); ++s)
+	{
+		w += sg_char_width(c);
+	}
+
+	return w;
+}
+
+int sg_string_width_len(const char *s, size_t len)
+{
+	int w = 0;
+	size_t i = 0;
+	for(uint8_t c; (c = s[i]) && i < len; ++i)
 	{
 		w += sg_char_width(c);
 	}
@@ -605,7 +845,7 @@ void sg_init(int width, int height, const char *title)
 
 	_sg_running = true;
 
-	_sg_fontatlas_default = sg_font_atlas_create(32);
+	_sg_fontatlas_default = sg_font_atlas_create(32, 16);
 	for(int c = 32; c <= 126; ++c)
 	{
 		sg_fontatlas_add_binary(_sg_fontatlas_default,
@@ -613,7 +853,7 @@ void sg_init(int width, int height, const char *title)
 			sg_size(8, 18), c);
 	}
 
-	sg_fontatlas_add_default_checkmark(_sg_fontatlas_default);
+	sg_fontatlas_add_default_icons(_sg_fontatlas_default);
 	sg_fontatlas_update(_sg_fontatlas_default);
 	_sg_fontatlas = _sg_fontatlas_default;
 }
@@ -826,6 +1066,114 @@ int sg_is_key_released(int key)
 }
 
 /* ========================================================================== */
+/* keyboard layouts */
+int sg_key_convert(int scancode, int mod)
+{
+	int key = scancode;
+	if(mod & (KMOD_LCTRL | KMOD_RCTRL))
+	{
+		key |= MOD_CTRL;
+	}
+
+	if(mod & KMOD_LALT)
+	{
+		key |= MOD_ALT;
+	}
+
+	if(mod & KMOD_RALT)
+	{
+		key |= MOD_ALT_GR;
+	}
+
+	if(mod & (KMOD_LGUI | KMOD_RGUI))
+	{
+		key |= MOD_OS;
+	}
+
+	if(mod & (KMOD_LSHIFT | KMOD_RSHIFT))
+	{
+		key |= MOD_SHIFT;
+	}
+
+	return key;
+}
+
+int sg_key_to_codepoint_german(int k)
+{
+	int nomods = k & 0xFF;
+
+	if(nomods == SDL_SCANCODE_TAB)                             { return '\t'; }
+	else if(nomods == SDL_SCANCODE_BACKSPACE)                  { return '\b'; }
+	else if(nomods == SDL_SCANCODE_RETURN)                     { return '\n'; }
+	else if(nomods == SDL_SCANCODE_SPACE)                      { return ' '; }
+	else if(k == (SDL_SCANCODE_COMMA | MOD_SHIFT))             { return ';'; }
+	else if(k == (SDL_SCANCODE_COMMA))                         { return ','; }
+	else if(k == (SDL_SCANCODE_PERIOD | MOD_SHIFT))            { return ':'; }
+	else if(k == (SDL_SCANCODE_PERIOD))                        { return '.'; }
+	else if(k == (SDL_SCANCODE_SLASH | MOD_SHIFT))             { return '_'; }
+	else if(k == (SDL_SCANCODE_SLASH))                         { return '-'; }
+	else if(k == (SDL_SCANCODE_BACKSLASH | MOD_SHIFT))         { return '\''; }
+	else if(k == (SDL_SCANCODE_BACKSLASH))                     { return '#'; }
+	else if(k == (SDL_SCANCODE_RIGHTBRACKET | MOD_SHIFT))      { return '*'; }
+	else if(k == (SDL_SCANCODE_RIGHTBRACKET | MOD_ALT_GR))     { return '~'; }
+	else if(k == (SDL_SCANCODE_RIGHTBRACKET))                  { return '+'; }
+	else if(k == (SDL_SCANCODE_NONUSBACKSLASH | MOD_SHIFT))    { return '>'; }
+	else if(k == (SDL_SCANCODE_NONUSBACKSLASH | MOD_ALT_GR))   { return '|'; }
+	else if(k == SDL_SCANCODE_NONUSBACKSLASH)                  { return '<'; }
+	else if(k == (SDL_SCANCODE_MINUS | MOD_SHIFT))             { return '?'; }
+	else if(k == (SDL_SCANCODE_MINUS | MOD_ALT_GR))            { return '\\'; }
+	else if(k == (SDL_SCANCODE_EQUALS | MOD_SHIFT))            { return '`'; }
+	else if(k == SDL_SCANCODE_GRAVE)                           { return '^'; }
+	else if(nomods >= SDL_SCANCODE_A && nomods <= SDL_SCANCODE_Z)
+	{
+		int c = nomods - SDL_SCANCODE_A + 'a';
+
+		if(c == 'z') { c = 'y'; }
+		else if(c == 'y') { c = 'z'; }
+
+		if(k & MOD_ALT_GR)
+		{
+			if(c == 'q') { return '@'; }
+		}
+
+		if(k & MOD_SHIFT)
+		{
+			c = toupper(c);
+		}
+
+		return c;
+	}
+	else if(nomods >= SDL_SCANCODE_1 && nomods <= SDL_SCANCODE_0)
+	{
+		static const uint8_t numbers[] =
+			{ '1', '2', '3', '4', '5', '6', '7', '8', '9', '0' };
+
+		static const uint8_t numbers_shift[] =
+			{ '!', '\"', 0, '$', '%', '&', '/', '(', ')', '=' };
+
+		static const uint8_t numbers_altgr[] =
+			{ 0, 0, 0, 0, 0, 0, '{', '[', ']', '}' };
+
+		int idx = nomods - SDL_SCANCODE_1;
+
+		if(k & MOD_SHIFT)
+		{
+			return numbers_shift[idx];
+		}
+		else if(k & MOD_ALT_GR)
+		{
+			return numbers_altgr[idx];
+		}
+		else
+		{
+			return numbers[idx];
+		}
+	}
+
+	return 0;
+}
+
+/* ========================================================================== */
 /* GUI GLOBAL STATE */
 SgColor _sg_window_bg = 0x100000;
 
@@ -855,10 +1203,15 @@ SgColor _sg_color_rail_active = 0x9b0000;
 int _sg_slider_thumb_width = 6;
 int _sg_slider_rail_height = 6;
 
-int _sg_select_left_padding = 10;
-
+int _sg_select_padding = 10;
+int _sg_select_page_items = 5;
 int _sg_border_thickness = 2;
-int _font_height = 16;
+
+int _sg_textbox_padding = 5;
+
+int _sg_textbox_padding_x = 5;
+
+SgRect _cursor;
 
 /* ========================================================================== */
 /* sg_color */
@@ -904,11 +1257,12 @@ void sg_label(SgRect d, const char *text, int flags)
 	int ry = d.y;
 	if(valign == SG_VALIGN_CENTER)
 	{
-		ry += d.h / 2 - _font_height / 2;
+		ry += d.h / 2 - _sg_fontatlas->FontHeight / 2;
 	}
 	else if(valign == SG_VALIGN_BOTTOM)
 	{
-		ry += d.h - _font_height;
+
+		ry += d.h - _sg_fontatlas->FontHeight;
 	}
 
 	sg_render_string(rx, ry, text, _sg_color_text);
@@ -929,7 +1283,7 @@ int sg_button(SgRect d, const char *text)
 
 	sg_render_string(
 		d.x + d.w / 2 - sg_string_width(text) / 2,
-		d.y + d.h / 2 - _font_height / 2,
+		d.y + d.h / 2 - _sg_fontatlas->FontHeight / 2,
 		text, hover ? (active ? _sg_color_text_active : _sg_color_text_hover) : _sg_color_text);
 
 	return hover && sg_is_mouse_button_pressed(SG_BUTTON_LEFT);
@@ -940,6 +1294,11 @@ int sg_button(SgRect d, const char *text)
 void sg_set_checkmark_char(uint8_t index)
 {
 	_sg_char_checkmark = index;
+}
+
+uint8_t sg_get_checkmark_char(void)
+{
+	return sg_char_width(_sg_char_checkmark) > 0 ? _sg_char_checkmark : 'X';
 }
 
 int sg_checkbox(SgRect d, bool *checked)
@@ -955,27 +1314,12 @@ int sg_checkbox(SgRect d, bool *checked)
 
 	if(*checked)
 	{
-		int cw = sg_char_width(_sg_char_checkmark);
-		if(cw == 0)
-		{
-			/* If no checkmark available, fallback to square */
-			SgRect check = sg_rect(
-				d.x + d.w / 2 - 8,
-				d.y + d.h / 2 - 8,
-				16,
-				16);
-
-			sg_fill_rect(check,
-				hover ? (active ? _sg_color_text_active : _sg_color_text_hover) : _sg_color_text);
-		}
-		else
-		{
-			sg_render_char(
-				d.x + d.w / 2 - cw / 2,
-				d.y + d.h / 2 - _font_height / 2,
-				_sg_char_checkmark,
-				hover ? (active ? _sg_color_text_active : _sg_color_text_hover) : _sg_color_text);
-		}
+		uint8_t c = sg_get_checkmark_char();
+		sg_render_char(
+			d.x + d.w / 2 - sg_char_width(c) / 2,
+			d.y + d.h / 2 - sg_char_height(c) / 2,
+			c,
+			hover ? (active ? _sg_color_text_active : _sg_color_text_hover) : _sg_color_text);
 	}
 
 	int clicked = hover && sg_is_mouse_button_pressed(SG_BUTTON_LEFT);
@@ -989,13 +1333,6 @@ int sg_checkbox(SgRect d, bool *checked)
 
 /* ========================================================================== */
 /* sg_slider */
-double clamp(double x, double min, double max)
-{
-	if(x < min) { return min; }
-	if(x > max) { return max; }
-	return x;
-}
-
 int sg_slider(SgRect d, double *value, double min, double max)
 {
 	int hover = sg_rect_mouse(d);
@@ -1012,8 +1349,6 @@ int sg_slider(SgRect d, double *value, double min, double max)
 
 	int active = pressed || sel;
 
-
-
 	sg_fill_rect(sg_rect(d.x, d.y + d.h / 2 - _sg_slider_rail_height / 2, d.w, _sg_slider_rail_height),
 		active ? _sg_color_rail_active : (hover ? _sg_color_rail_hover : _sg_color_rail));
 
@@ -1026,7 +1361,7 @@ int sg_slider(SgRect d, double *value, double min, double max)
 	{
 		double percent = (mouse.x - (d.x + _sg_slider_thumb_width / 2)) /
 			(double)(d.w - _sg_slider_thumb_width);
-		*value = min + clamp(percent, 0.0, 1.0) * (max - min);
+		*value = min + sg_fclamp(percent, 0.0, 1.0) * (max - min);
 	}
 
 	return *value != prev_value;
@@ -1034,13 +1369,420 @@ int sg_slider(SgRect d, double *value, double min, double max)
 
 /* ========================================================================== */
 /* sg_select */
+void sg_set_select_char(uint8_t index)
+{
+	_sg_char_select = index;
+}
 
+uint8_t sg_get_select_char(void)
+{
+	return sg_char_width(_sg_char_select) > 0 ? _sg_char_select : 'V';
+}
 
+int sg_select(SgRect d, const char *items[], size_t count, int *active)
+{
+	assert(count > 0);
+
+	int hover = sg_rect_mouse(d);
+	int sel = _sg_selected && sg_rect_contains_point(d, _sg_selected_point);
+	int down = sg_is_mouse_button_down(SG_BUTTON_LEFT);
+
+	int pressed = hover && down;
+	SgPoint mouse = sg_mouse_position();
+	if(pressed)
+	{
+		_sg_selected = true;
+		_sg_selected_point = mouse;
+	}
+
+	sg_fill_rect(d,
+		hover ? (active ? _sg_color_bg_active : _sg_color_bg_hover) : _sg_color_bg);
+
+	sg_draw_rect(d, _sg_border_thickness,
+		hover ? (active ? _sg_color_border_active : _sg_color_border_hover) : _sg_color_border);
+
+	const char *text = items[*active];
+
+	sg_render_string(
+		d.x + _sg_select_padding,
+		d.y + d.h / 2 - _sg_fontatlas->FontHeight / 2,
+		text, hover ? (active ? _sg_color_text_active : _sg_color_text_hover) : _sg_color_text);
+
+	sg_render_char(
+		d.x + d.w - _sg_select_padding - sg_char_width(_sg_char_select),
+		d.y + d.h / 2 - sg_char_height(_sg_char_select) / 2,
+		_sg_char_select,
+		hover ? (active ? _sg_color_text_active : _sg_color_text_hover) : _sg_color_text);
+
+	if(1)
+	{
+		int elems = sg_min(_sg_select_page_items, count);
+		int step_y = d.h - _sg_border_thickness;
+		int total_h = elems * step_y;
+
+		if(d.x + d.h + total_h > sg_get_window_size().h &&
+			d.x - total_h > 0)
+		{
+			step_y = -step_y;
+		}
+
+		SgRect b = sg_rect(d.x, d.y, d.w, d.h);
+		for(size_t i = 0; i < elems; ++i)
+		{
+			b.y += step_y;
+
+			sg_fill_rect(b,
+				hover ? (active ? _sg_color_bg_active : _sg_color_bg_hover) : _sg_color_bg);
+
+			sg_draw_rect(b, _sg_border_thickness,
+				hover ? (active ? _sg_color_border_active : _sg_color_border_hover) : _sg_color_border);
+
+			sg_render_string(
+				b.x + _sg_select_padding,
+				b.y + b.h / 2 - _sg_fontatlas->FontHeight / 2,
+				items[i], hover ? (active ? _sg_color_text_active : _sg_color_text_hover) : _sg_color_text);
+		}
+	}
+
+	return 0;
+}
 
 /* ========================================================================== */
 /* sg_textbox */
 
+static int _sg_tb_selection;
+static int _sg_tb_position;
 
+static void sg_textbox_replace(SgStringBuffer *sb,
+	uint32_t index, uint32_t count,
+	const void *elems, uint32_t new_count)
+{
+	uint32_t new_length = sb->length - count + new_count;
+	uint32_t last_bytes = (sb->length - index - count);
+	memmove(sb->buffer + index + new_count,
+		sb->buffer + index + count,
+		last_bytes);
+
+	memcpy(sb->buffer + index, elems, new_count);
+	sb->length = new_length;
+}
+
+static void sg_textbox_remove(SgStringBuffer *sb, uint32_t index)
+{
+	sg_textbox_replace(sb, index, 1, NULL, 0);
+}
+
+static void sg_textbox_selection_replace(SgStringBuffer *sb,
+	const char *str, int len)
+{
+	int sel_start = sg_min(_sg_tb_selection, _sg_tb_position);
+	int sel_len = sg_max(_sg_tb_selection, _sg_tb_position) - sel_start;
+
+	sg_textbox_replace(sb, sel_start, sel_len, str, len);
+	_sg_tb_position = sel_start + len;
+	_sg_tb_selection = _sg_tb_position;
+}
+
+static int sg_textbox_backspace(SgStringBuffer *sb)
+{
+	if(_sg_tb_selection != _sg_tb_position)
+	{
+		sg_textbox_selection_replace(sb, NULL, 0);
+	}
+	else if(_sg_tb_position > 0)
+	{
+		--_sg_tb_position;
+		_sg_tb_selection = _sg_tb_position;
+		sg_textbox_remove(sb, _sg_tb_position);
+	}
+
+	return 0;
+}
+
+static int sg_textbox_delete(SgStringBuffer *sb)
+{
+	if(_sg_tb_selection != _sg_tb_position)
+	{
+		sg_textbox_selection_replace(sb, NULL, 0);
+	}
+	else if(_sg_tb_position < (int)sb->length)
+	{
+		sg_textbox_remove(sb, _sg_tb_position);
+	}
+
+	return 0;
+}
+
+static int sg_textbox_char(SgStringBuffer *sb, uint32_t chr)
+{
+	char ins = chr;
+	sg_textbox_selection_replace(sb, &ins, 1);
+	return 0;
+}
+
+static void sg_tb_selection_save(SgStringBuffer *sb)
+{
+	int sel_start = sg_min(_sg_tb_selection, _sg_tb_position);
+	int sel_len = sg_max(_sg_tb_selection, _sg_tb_position) - sel_start;
+	char *p = sb->buffer + sel_start + sel_len;
+	int chr = *p;
+	*p = '\0';
+	SDL_SetClipboardText(sb->buffer + sel_start);
+	*p = chr;
+}
+
+static void sg_textbox_copy(SgStringBuffer *sb)
+{
+	sg_tb_selection_save(sb);
+}
+
+static int sg_textbox_cut(SgStringBuffer *sb)
+{
+	sg_tb_selection_save(sb);
+	sg_textbox_selection_replace(sb, NULL, 0);
+	return 0;
+}
+
+static int sg_textbox_paste(SgStringBuffer *sb)
+{
+	char *p = SDL_GetClipboardText();
+	sg_textbox_selection_replace(sb, p, strlen(p));
+	free(p);
+	return 0;
+}
+
+static void sg_textbox_click(SgStringBuffer *sb, int x, int tb_x)
+{
+	int offset = x - tb_x - _sg_textbox_padding;
+	if(offset < 0) { return; }
+	// TODO
+	offset = 0; // (offset + (FONT_WIDTH / 2)) / FONT_WIDTH;
+	if(offset > sb->length)
+	{
+		offset = sb->length;
+	}
+
+	_sg_tb_position = offset;
+	_sg_tb_selection = offset;
+}
+
+static void sg_textbox_left(void)
+{
+	if(_sg_tb_selection != _sg_tb_position)
+	{
+		_sg_tb_selection = _sg_tb_position;
+	}
+	else if(_sg_tb_position > 0)
+	{
+		--_sg_tb_position;
+		_sg_tb_selection = _sg_tb_position;
+	}
+}
+
+static void sg_textbox_select_left(void)
+{
+	if(_sg_tb_position > 0)
+	{
+		--_sg_tb_position;
+	}
+}
+
+static void sg_textbox_right(SgStringBuffer *sb)
+{
+	if(_sg_tb_selection != _sg_tb_position)
+	{
+		_sg_tb_selection = _sg_tb_position;
+	}
+	else if(_sg_tb_position < (int)sb->length)
+	{
+		++_sg_tb_position;
+		_sg_tb_selection = _sg_tb_position;
+	}
+}
+
+static void sg_textbox_select_right(SgStringBuffer *sb)
+{
+	if(_sg_tb_position < (int)sb->length)
+	{
+		++_sg_tb_position;
+	}
+}
+
+static void sg_textbox_home(void)
+{
+	_sg_tb_selection = 0;
+	_sg_tb_position = 0;
+}
+
+static void sg_textbox_select_home(void)
+{
+	_sg_tb_position = 0;
+}
+
+static void sg_textbox_end(SgStringBuffer *sb)
+{
+	_sg_tb_position = sb->length;
+	_sg_tb_selection = _sg_tb_position;
+}
+
+static void sg_textbox_select_end(SgStringBuffer *sb)
+{
+	_sg_tb_position = sb->length;
+}
+
+static void sg_textbox_select_all(SgStringBuffer *sb)
+{
+	_sg_tb_selection = 0;
+	_sg_tb_position = sb->length;
+}
+
+int sg_textbox_event_key(SgStringBuffer *sb, uint32_t key, uint32_t chr)
+{
+	uint32_t nomods = key & 0xFF;
+	if(key == SDL_SCANCODE_HOME)
+	{
+		sg_textbox_home();
+	}
+	else if(key == (SDL_SCANCODE_HOME | MOD_SHIFT))
+	{
+		sg_textbox_select_home();
+	}
+	else if(key == SDL_SCANCODE_END)
+	{
+		sg_textbox_end(sb);
+	}
+	else if(key == (SDL_SCANCODE_END | MOD_SHIFT))
+	{
+		sg_textbox_select_end(sb);
+	}
+	else if(key == SDL_SCANCODE_LEFT)
+	{
+		sg_textbox_left();
+	}
+	else if(key == (SDL_SCANCODE_LEFT | MOD_SHIFT))
+	{
+		sg_textbox_select_left();
+	}
+	else if(key == SDL_SCANCODE_RIGHT)
+	{
+		sg_textbox_right(sb);
+	}
+	else if(key == (SDL_SCANCODE_RIGHT | MOD_SHIFT))
+	{
+		sg_textbox_select_right(sb);
+	}
+	else if(nomods == SDL_SCANCODE_BACKSPACE)
+	{
+		return sg_textbox_backspace(sb);
+	}
+	else if(nomods == SDL_SCANCODE_DELETE)
+	{
+		return sg_textbox_delete(sb);
+	}
+	else if(key == (SDL_SCANCODE_A | MOD_CTRL))
+	{
+		sg_textbox_select_all(sb);
+	}
+	else if(key == (SDL_SCANCODE_C | MOD_CTRL))
+	{
+		sg_textbox_copy(sb);
+	}
+	else if(key == (SDL_SCANCODE_X | MOD_CTRL))
+	{
+		return sg_textbox_cut(sb);
+	}
+	else if(key == (SDL_SCANCODE_V | MOD_CTRL))
+	{
+		return sg_textbox_paste(sb);
+	}
+	else if(nomods == SDL_SCANCODE_RETURN)
+	{
+		return '\n';
+	}
+	else if(isprint(chr))
+	{
+		return sg_textbox_char(sb, chr);
+	}
+
+	return 0;
+}
+
+void sg_textbox_render(SgRect d, SgStringBuffer *sb)
+{
+	int border_thickness = 2;
+	SgColor inner_color = _sg_color_bg;
+	SgColor border_color = _sg_color_border;
+	SgColor text_color = _sg_color_text;
+	SgColor text_color_sel = _sg_color_text;
+	SgColor bg_color_sel = _sg_color_text;
+	SgColor cursor_color = _sg_color_text;
+	int selected = 0;
+
+	sg_fill_rect(
+		sg_rect(
+			d.x + border_thickness,
+			d.y + border_thickness,
+			d.w - 2 * border_thickness,
+			d.h - 2 * border_thickness),
+		inner_color);
+
+	sg_draw_rect(d, border_thickness, border_color);
+
+	int text_y = d.y + d.h / 2 - _sg_fontatlas->FontHeight / 2;
+
+	if(_sg_tb_selection == _sg_tb_position)
+	{
+		sg_render_string_len(
+			d.x + _sg_textbox_padding_x,
+			text_y,
+			sb->buffer, sb->length,
+			text_color);
+	}
+	else
+	{
+		int sel_start = sg_min(_sg_tb_selection, _sg_tb_position);
+		int sel_len = sg_max(_sg_tb_selection, _sg_tb_position) - sel_start;
+
+		sg_render_string_len(
+			d.x + _sg_textbox_padding_x,
+			text_y,
+			sb->buffer, sel_start,
+			text_color);
+
+		int sel_x = sg_string_width_len(sb->buffer, sel_start);
+
+		sg_fill_rect(sg_rect(
+			d.x + _sg_textbox_padding_x + sel_x,
+			d.y + _cursor.y,
+			sg_string_width_len(sb->buffer + sel_start, sel_len),
+			_cursor.h),
+			bg_color_sel);
+
+		sg_render_string_len(
+			d.x + _sg_textbox_padding_x + sel_x,
+			text_y,
+			sb->buffer + sel_start, sel_len,
+			text_color_sel);
+
+		sg_render_string_len(
+			d.x + _sg_textbox_padding_x +
+				sg_string_width_len(sb->buffer, sel_start + sel_len),
+			text_y,
+			sb->buffer + sel_start + sel_len,
+			sb->length - sel_start - sel_len,
+			text_color);
+	}
+
+	if(selected)
+	{
+		sg_fill_rect(sg_rect(d.x + _sg_textbox_padding_x +
+			sg_string_width_len(sb->buffer, _sg_tb_position) + _cursor.x,
+			d.y + _cursor.y,
+			_cursor.w,
+			_cursor.h),
+			cursor_color);
+	}
+}
 
 /* ========================================================================== */
 /* Default (fallback) font */
@@ -1061,6 +1803,26 @@ const uint8_t _sg_default_checkmark[] =
 	0x1F, 0x00, /*    #####         */
 	0x0E, 0x00, /*     ###          */
 	0x04, 0x00, /*      #           */
+	0x00, 0x00, /*                  */
+};
+
+const uint8_t _sg_default_select[] =
+{
+	0x00, 0x00, /*                  */
+	0x00, 0x00, /*                  */
+	0x00, 0x00, /*                  */
+	0x00, 0x00, /*                  */
+	0x7F, 0xFE, /*  ##############  */
+	0x3F, 0xFC, /*   ############   */
+	0x1F, 0xF8, /*    ##########    */
+	0x0F, 0xF0, /*     ########     */
+	0x07, 0xE0, /*      ######      */
+	0x03, 0xC0, /*       ####       */
+	0x01, 0x80, /*        ##        */
+	0x00, 0x00, /*                  */
+	0x00, 0x00, /*                  */
+	0x00, 0x00, /*                  */
+	0x00, 0x00, /*                  */
 	0x00, 0x00, /*                  */
 };
 
