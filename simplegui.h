@@ -304,9 +304,14 @@ void sg_fontatlas_add_default_icons(SgFontAtlas atlas);
 void sg_fontatlas_update(SgFontAtlas atlas);
 
 /* font rendering */
+int sg_char_height(uint8_t c);
 int sg_char_width(uint8_t c);
 int sg_string_width(const char *s);
 int sg_string_width_len(const char *s, size_t len);
+
+int sg_render_char(int x, int y, uint8_t c, SgColor color);
+void sg_render_string(int x, int y, const char *s, SgColor color);
+void sg_render_string_len(int x, int y, const char *s, size_t len, SgColor color)
 
 /* allocation */
 void *sg_malloc(size_t size);
