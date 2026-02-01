@@ -54,8 +54,7 @@ Returns relative mouse wheel position.
 
 ## Keyboard
 
-The key parameter is an `SDL_Scancode`.
-[SDL_Scancode](https://wiki.libsdl.org/SDL2/SDL_Scancode)
+The key parameter is an [SDL_Scancode](https://wiki.libsdl.org/SDL2/SDL_Scancode).
 
 ### Is key down?
 
