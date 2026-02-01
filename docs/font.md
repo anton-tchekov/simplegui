@@ -2,7 +2,8 @@
 
 SimpleGUI uses a Texture Atlas approach (called `SgFontAtlas`)
 to render text. Each font atlas has 16x16 equally-sized
-square cells.
+square cells. There is a built in font, but you can also
+load custom fonts and icons.
 
 ## SgFont
 
