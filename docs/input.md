@@ -60,7 +60,7 @@ The key parameter is an `SDL_Scancode`.
 ### Is key down?
 
 ```c
-int sg_is_key_down(int key);
+bool sg_is_key_down(SDL_Scancode key);
 ```
 
 Returns true if specified key is currently down.
@@ -68,7 +68,7 @@ Returns true if specified key is currently down.
 ### Was key pressed?
 
 ```c
-int sg_is_key_pressed(int key);
+bool sg_is_key_pressed(SDL_Scancode key);
 ```
 
 Returns true if specified key was pressed this frame.
@@ -76,7 +76,7 @@ Returns true if specified key was pressed this frame.
 ### Was key released?
 
 ```c
-int sg_is_key_released(int key);
+bool sg_is_key_released(SDL_Scancode key);
 ```
 
 Returns true if specified key was released this frame.

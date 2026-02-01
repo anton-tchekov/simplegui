@@ -338,9 +338,9 @@ SgPoint sg_mouse_position(void);
 SgPoint sg_mouse_wheel(void);
 
 /* keyboard handling */
-int sg_is_key_down(int key);
-int sg_is_key_pressed(int key);
-int sg_is_key_released(int key);
+bool sg_is_key_down(SDL_Scancode key);
+bool sg_is_key_pressed(SDL_Scancode key);
+bool sg_is_key_released(SDL_Scancode key);
 
 /* keyboard layouts */
 #define MOD_SHIFT          0x8000
@@ -1061,17 +1061,17 @@ SgPoint sg_mouse_wheel(void)
 
 /* ========================================================================== */
 /* keyboard handling */
-int sg_is_key_down(int key)
+bool sg_is_key_down(SDL_Scancode key)
 {
 	return _sg_key_state[key];
 }
 
-int sg_is_key_pressed(int key)
+bool sg_is_key_pressed(SDL_Scancode key)
 {
 	return _sg_key_pressed[key];
 }
 
-int sg_is_key_released(int key)
+bool sg_is_key_released(SDL_Scancode key)
 {
 	return _sg_key_released[key];
 }
