@@ -232,7 +232,8 @@ static inline SgRect sg_rect(int x, int y, int w, int h)
 	return rect;
 }
 
-int sg_rect_contains_point(SgRect rect, SgPoint p);
+bool sg_rect_contains_point(SgRect rect, SgPoint p);
+bool sg_rect_contains_mouse(SgRect rect);
 
 /* SgAlign */
 #define SG_VALIGN_MASK 0x03
@@ -321,13 +322,13 @@ void sg_free(void *p);
 void sg_alloc_report(void);
 
 /* window */
-void sg_init(int width, int height, const char *title);
+void sg_init(SgSize size, const char *title);
 void sg_destroy(void);
 void sg_set_title(const char *title);
 void sg_begin(void);
 void sg_clear(SgColor color);
 void sg_update(void);
-int sg_running(void);
+bool sg_running(void);
 SgSize sg_get_window_size(void);
 
 /* mouse handling */
@@ -815,7 +816,7 @@ void sg_destroy(void)
 	sg_free(_sg_key_released);
 }
 
-void sg_init(int width, int height, const char *title)
+void sg_init(SgSize size, const char *title)
 {
 	if(SDL_Init(SDL_INIT_VIDEO) < 0)
 	{
@@ -826,7 +827,7 @@ void sg_init(int width, int height, const char *title)
 
 	if(!(_sg_window = SDL_CreateWindow(title,
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-		width, height, SDL_WINDOW_RESIZABLE)))
+		size.w, size.h, SDL_WINDOW_RESIZABLE)))
 	{
 		fprintf(stderr, "Error creating SDL_Window: %s\n", SDL_GetError());
 		sg_destroy();
@@ -994,7 +995,7 @@ void sg_begin(void)
 		switch(e.type)
 		{
 		case SDL_QUIT:
-			_sg_running = 0;
+			_sg_running = false;
 			break;
 
 		case SDL_MOUSEWHEEL:
@@ -1025,7 +1026,7 @@ void sg_update(void)
 	SDL_RenderPresent(_sg_renderer);
 }
 
-int sg_running(void)
+bool sg_running(void)
 {
 	return _sg_running;
 }
@@ -1233,13 +1234,13 @@ SgColor sg_color(int r, int g, int b)
 
 /* ========================================================================== */
 /* sg_rect */
-int sg_rect_contains_point(SgRect rect, SgPoint p)
+bool sg_rect_contains_point(SgRect rect, SgPoint p)
 {
 	return p.x >= rect.x && p.y >= rect.y &&
 		p.x < rect.x + rect.w && p.y < rect.y + rect.h;
 }
 
-int sg_rect_mouse(SgRect rect)
+bool sg_rect_contains_mouse(SgRect rect)
 {
 	return sg_rect_contains_point(rect, sg_mouse_position());
 }
@@ -1281,8 +1282,8 @@ void sg_label(SgRect d, const char *text, int flags)
 /* sg_button */
 int sg_button(SgRect d, const char *text)
 {
-	int hover = sg_rect_mouse(d);
-	int active = sg_is_mouse_button_down(SG_BUTTON_LEFT);
+	bool hover = sg_rect_contains_mouse(d);
+	bool active = sg_is_mouse_button_down(SG_BUTTON_LEFT);
 
 	sg_fill_rect(d,
 		hover ? (active ? _sg_color_bg_active : _sg_color_bg_hover) : _sg_color_bg);
@@ -1312,8 +1313,8 @@ uint8_t sg_get_checkmark_char(void)
 
 int sg_checkbox(SgRect d, bool *checked)
 {
-	int hover = sg_rect_mouse(d);
-	int active = sg_is_mouse_button_down(SG_BUTTON_LEFT);
+	bool hover = sg_rect_contains_mouse(d);
+	bool active = sg_is_mouse_button_down(SG_BUTTON_LEFT);
 
 	sg_fill_rect(d,
 		hover ? (active ? _sg_color_bg_active : _sg_color_bg_hover) : _sg_color_bg);
@@ -1344,11 +1345,11 @@ int sg_checkbox(SgRect d, bool *checked)
 /* sg_slider */
 int sg_slider(SgRect d, double *value, double min, double max)
 {
-	int hover = sg_rect_mouse(d);
-	int sel = _sg_selected && sg_rect_contains_point(d, _sg_selected_point);
-	int down = sg_is_mouse_button_down(SG_BUTTON_LEFT);
+	bool hover = sg_rect_contains_mouse(d);
+	bool sel = _sg_selected && sg_rect_contains_point(d, _sg_selected_point);
+	bool down = sg_is_mouse_button_down(SG_BUTTON_LEFT);
 
-	int pressed = hover && down;
+	bool pressed = hover && down;
 	SgPoint mouse = sg_mouse_position();
 	if(pressed)
 	{
@@ -1356,7 +1357,7 @@ int sg_slider(SgRect d, double *value, double min, double max)
 		_sg_selected_point = mouse;
 	}
 
-	int active = pressed || sel;
+	bool active = pressed || sel;
 
 	sg_fill_rect(sg_rect(d.x, d.y + d.h / 2 - _sg_slider_rail_height / 2, d.w, _sg_slider_rail_height),
 		active ? _sg_color_rail_active : (hover ? _sg_color_rail_hover : _sg_color_rail));
@@ -1392,11 +1393,11 @@ int sg_select(SgRect d, const char *items[], size_t count, int *active)
 {
 	assert(count > 0);
 
-	int hover = sg_rect_mouse(d);
-	int sel = _sg_selected && sg_rect_contains_point(d, _sg_selected_point);
-	int down = sg_is_mouse_button_down(SG_BUTTON_LEFT);
+	bool hover = sg_rect_contains_mouse(d);
+	bool sel = _sg_selected && sg_rect_contains_point(d, _sg_selected_point);
+	bool down = sg_is_mouse_button_down(SG_BUTTON_LEFT);
 
-	int pressed = hover && down;
+	bool pressed = hover && down;
 	SgPoint mouse = sg_mouse_position();
 	if(pressed)
 	{

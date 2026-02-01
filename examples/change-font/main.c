@@ -8,7 +8,7 @@
 
 int main(void)
 {
-	sg_init(640, 480, "SimpleGUI Change Font");
+	sg_init(sg_size(640, 480), "SimpleGUI Change Font");
 
 	SgFont font = sg_font_load("arial.ttf", FONT_SIZE);
 	SgFontAtlas fontatlas = sg_font_atlas_create(MAX_CHAR_SIZE, FONT_SIZE);

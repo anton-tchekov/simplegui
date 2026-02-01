@@ -31,14 +31,53 @@ static inline int sg_color_b(SgColor color);
 An alias for `SDL_Point`, a struct containing
 two ints: `x` and `y`.
 
+### Create a SgPoint
+
+```c
+static inline SgPoint sg_point(int x, int y);
+```
+
+Constructor function, useful for creating a `SgPoint` struct
+as a parameter in a function call.
+
 ## SgSize
 
 A struct containing two ints: `w` and `h`.
+
+### Create a SgSize
+
+```c
+static inline SgSize sg_size(int w, int h)
+```
+
+Constructor function, useful for creating a `SgSize` struct
+as a parameter in a function call.
 
 ## SgRect
 
 An alias for `SDL_Rect`, a struct containing
 four ints: `x`, `y`, `w`, `h`.
+
+### Create a SgRect
+
+```c
+static inline SgRect sg_rect(int x, int y, int w, int h);
+```
+
+Constructor function, useful for creating a `SgRect` struct
+as a parameter in a function call.
+
+### Check if a point is within a rectangle
+
+```c
+bool sg_rect_contains_point(SgRect rect, SgPoint p);
+```
+
+### Check if the mouse cursor is within a rectangle
+
+```c
+bool sg_rect_contains_mouse(SgRect rect);
+```
 
 ## Fill a rectangle
 
