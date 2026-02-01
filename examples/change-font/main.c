@@ -20,8 +20,7 @@ int main(void)
 
 	while(sg_running())
 	{
-		sg_begin();
-		sg_clear(SG_BLACK);
+		sg_begin(SG_BLACK);
 
 		sg_render_string(sg_point(10, 10), "Hello World!", SG_WHITE);
 		sg_button(sg_rect(10, 100, 200, 50), "Click Me!");

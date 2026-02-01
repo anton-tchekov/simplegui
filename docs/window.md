@@ -24,10 +24,10 @@ for cleaning up.
 void sg_set_title(const char *title);
 ```
 
-## Clear window background
+## Begin frame
 
 ```c
-void sg_clear(SgColor color);
+void sg_begin(SgColor color);
 ```
 This function will fill the entire window with the specified color.
 Call at the beginning of a frame before drawing anything else.

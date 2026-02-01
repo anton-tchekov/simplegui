@@ -20,8 +20,7 @@ int main(void)
 	sg_init(sg_size(640, 480), "Simple Select");
 	while(sg_running())
 	{
-		sg_begin();
-		sg_clear(_sg_window_bg);
+		sg_begin(_sg_window_bg);
 
 		sg_label(sg_rect(50, 50, 0, 0), "Select Color:", 0);
 		if(sg_select(sg_rect(50, 70, 200, 32), items, ARRLEN(items), &cur))

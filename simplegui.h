@@ -325,8 +325,7 @@ void sg_alloc_report(void);
 void sg_init(SgSize size, const char *title);
 void sg_destroy(void);
 void sg_set_title(const char *title);
-void sg_begin(void);
-void sg_clear(SgColor color);
+void sg_begin(SgColor color);
 void sg_update(void);
 bool sg_running(void);
 SgSize sg_get_window_size(void);
@@ -881,12 +880,6 @@ static void sg_set_color(SgColor color)
 		sg_color_r(color), sg_color_g(color), sg_color_b(color), 255);
 }
 
-void sg_clear(SgColor color)
-{
-	sg_set_color(color);
-	SDL_RenderClear(_sg_renderer);
-}
-
 SgSize sg_get_window_size(void)
 {
 	SgSize size;
@@ -980,7 +973,7 @@ static void sg_handle_key_up(SDL_Event *e)
 	gui_event_key(key, key_to_codepoint(key), KEYSTATE_RELEASED);*/
 }
 
-void sg_begin(void)
+void sg_begin(SgColor color)
 {
 	_sg_scroll = sg_point(0, 0);
 	_sg_mouse_button_pressed = 0;
@@ -1019,6 +1012,9 @@ void sg_begin(void)
 			break;
 		}
 	}
+
+	sg_set_color(color);
+	SDL_RenderClear(_sg_renderer);
 }
 
 void sg_update(void)
