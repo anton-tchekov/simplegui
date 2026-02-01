@@ -146,3 +146,33 @@ int sg_string_width(const char *s);
 ```c
 int sg_string_width_len(const char *s, size_t len);
 ```
+
+## SgTexture
+
+Alias for `SDL_Texture *`.
+
+## Load Texture
+
+```c
+SgTexture sg_texture_load(const char *file);
+```
+
+Load texture from image file. Returns `NULL` on failure,
+
+## Free Texture
+
+```c
+void sg_texture_destroy(SgTexture texture);
+```
+
+## Get Texture Size
+
+```c
+SgSize sg_texture_size(SgTexture texture);
+```
+
+## Render Texture
+
+```c
+void sg_texture_draw(SgTexture texture, SgRect src, SgRect dst);
+```

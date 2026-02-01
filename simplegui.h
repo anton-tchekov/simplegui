@@ -265,11 +265,11 @@ typedef SDL_Surface *SgSurface;
 /* SgTexture */
 typedef SDL_Texture *SgTexture;
 
-SgTexture sg_load_texture(const char *file);
-void sg_destroy_texture(SgTexture texture);
+SgTexture sg_texture_load(const char *file);
+void sg_texture_destroy(SgTexture texture);
 SgSize sg_texture_size(SgTexture texture);
 SgRect sg_texture_bounds(SgTexture texture);
-void sg_draw_texture(SgTexture texture, SgRect src, SgRect dst);
+void sg_texture_draw(SgTexture texture, SgRect src, SgRect dst);
 
 /* SgFont */
 typedef TTF_Font *SgFont;
@@ -456,7 +456,7 @@ void sg_fontatlas_destroy(SgFontAtlas atlas)
 	SDL_FreeSurface(atlas->Surface);
 	if(atlas->Texture)
 	{
-		sg_destroy_texture(atlas->Texture);
+		sg_texture_destroy(atlas->Texture);
 	}
 
 	sg_free(atlas);
@@ -648,7 +648,7 @@ void sg_fontatlas_update(SgFontAtlas atlas)
 
 	if(atlas->Texture)
 	{
-		sg_destroy_texture(atlas->Texture);
+		sg_texture_destroy(atlas->Texture);
 	}
 
 	atlas->Texture = SDL_CreateTextureFromSurface(_sg_renderer, atlas->Surface);
@@ -905,13 +905,13 @@ void sg_draw_rect(SgRect rect, int border, SgColor color)
 }
 
 /* ========================================================================== */
-/* draw and fill rectangle */
-SgTexture sg_load_texture(const char *file)
+/* textures */
+SgTexture sg_texture_load(const char *file)
 {
 	return IMG_LoadTexture(_sg_renderer, file);
 }
 
-void sg_destroy_texture(SgTexture texture)
+void sg_texture_destroy(SgTexture texture)
 {
 	SDL_DestroyTexture(texture);
 }
@@ -929,7 +929,7 @@ SgRect sg_texture_bounds(SgTexture texture)
 	return sg_rect(0, 0, size.w, size.h);
 }
 
-void sg_draw_texture(SgTexture texture, SgRect src, SgRect dst)
+void sg_texture_draw(SgTexture texture, SgRect src, SgRect dst)
 {
 	SDL_RenderCopy(_sg_renderer, texture, &src, &dst);
 }
@@ -1242,10 +1242,6 @@ bool sg_rect_contains_mouse(SgRect rect)
 }
 
 /* ========================================================================== */
-/* common utility functions for all elements */
-
-
-/* ========================================================================== */
 /* sg_label */
 void sg_label(SgRect d, const char *text, int flags)
 {
@@ -1455,7 +1451,6 @@ int sg_select(SgRect d, const char *items[], size_t count, int *active)
 
 /* ========================================================================== */
 /* sg_textbox */
-
 static int _sg_tb_selection;
 static int _sg_tb_position;
 
@@ -1787,7 +1782,7 @@ void sg_textbox_render(SgRect d, SgStringBuffer *sb)
 }
 
 /* ========================================================================== */
-/* Default (fallback) font */
+/* Default font */
 const uint8_t _sg_default_checkmark[] =
 {
 	0x00, 0x00, /*                  */

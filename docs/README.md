@@ -5,9 +5,7 @@ name conflicts.
 
 - [Window](window.md)
 - [2D Graphics](render.md)
-- [Textures](texture.md)
-- [Fonts](font.md)
-- [Font Atlas](fontatlas.md)
-- [Memory Allocation](alloc.md)
-- [Mouse and Keyboard Input](input.md)
 - [Controls](controls.md)
+- [Fonts](font.md)
+- [Mouse and Keyboard Input](input.md)
+- [Memory Allocation](alloc.md)

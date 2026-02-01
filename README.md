@@ -12,9 +12,10 @@ is still missing:
 - Select
 - Textbox
 - Styling functions
+
 - Add Asserts / Error checks where missing
 - Create example projects
-- Write documentation
+- Write documentation for controls
 - Add screenshots
 
 ## Features
