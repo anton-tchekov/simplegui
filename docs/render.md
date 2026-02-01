@@ -57,27 +57,30 @@ The border extends inwards.
 ## Draw a character
 
 ```c
-int sg_render_char(int x, int y, uint8_t c, SgColor color);
+int sg_render_char(SgPoint p, uint8_t c, SgColor color);
 ```
 
+Point is top left point of the character.
 Uses the currently selected font atlas.
 Returns the width of the character.
 
 ## Draw a string
 
 ```c
-void sg_render_string(int x, int y, const char *s, SgColor color);
+int sg_render_string(SgPoint p, const char *s, SgColor color);
 ```
 
+Point is top left point of the string.
 Uses the currently selected font atlas.
 Returns the width of the string.
 
 ## Draw a string with maximum length
 
 ```c
-void sg_render_string_len(int x, int y, const char *s, size_t len, SgColor color);
+int sg_render_string_len(SgPoint p, const char *s, size_t len, SgColor color);
 ```
 
+Point is top left point of the string.
 Uses the currently selected font atlas.
 Returns the width of the string.
 

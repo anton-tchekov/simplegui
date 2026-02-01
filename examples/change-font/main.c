@@ -23,7 +23,7 @@ int main(void)
 		sg_begin();
 		sg_clear(SG_BLACK);
 
-		sg_render_string(10, 10, "Hello World!", SG_WHITE);
+		sg_render_string(sg_point(10, 10), "Hello World!", SG_WHITE);
 		sg_button(sg_rect(10, 100, 200, 50), "Click Me!");
 
 		sg_update();

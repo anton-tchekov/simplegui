@@ -309,9 +309,9 @@ int sg_char_width(uint8_t c);
 int sg_string_width(const char *s);
 int sg_string_width_len(const char *s, size_t len);
 
-int sg_render_char(int x, int y, uint8_t c, SgColor color);
-void sg_render_string(int x, int y, const char *s, SgColor color);
-void sg_render_string_len(int x, int y, const char *s, size_t len, SgColor color);
+int sg_render_char(SgPoint p, uint8_t c, SgColor color);
+int sg_render_string(SgPoint p, const char *s, SgColor color);
+int sg_render_string_len(SgPoint p, const char *s, size_t len, SgColor color);
 
 /* allocation */
 void *sg_malloc(size_t size);
@@ -654,33 +654,39 @@ void sg_fontatlas_update(SgFontAtlas atlas)
 	atlas->Texture = SDL_CreateTextureFromSurface(_sg_renderer, atlas->Surface);
 }
 
-int sg_render_char(int x, int y, uint8_t c, SgColor color)
+int sg_render_char(SgPoint p, uint8_t c, SgColor color)
 {
 	int stride = _sg_fontatlas->MaxCharSize;
 	SgSize size = _sg_fontatlas->CharDim[c];
 	SDL_Rect src = { (c & 0x0F) * stride, (c >> 4) * stride, size.w, size.h };
-	SDL_Rect dst = { x, y, size.w, size.h };
+	SDL_Rect dst = { p.x, p.y, size.w, size.h };
 	SDL_SetTextureColorMod(_sg_fontatlas->Texture,
 		sg_color_r(color), sg_color_g(color), sg_color_b(color));
 	SDL_RenderCopy(_sg_renderer, _sg_fontatlas->Texture, &src, &dst);
 	return size.w;
 }
 
-void sg_render_string(int x, int y, const char *s, SgColor color)
+int sg_render_string(SgPoint p, const char *s, SgColor color)
 {
+	int w = 0;
 	for(uint8_t c; (c = *s); ++s)
 	{
-		x += sg_render_char(x, y, c, color);
+		w += sg_render_char(sg_point(p.x + w, p.y), c, color);
 	}
+
+	return w;
 }
 
-void sg_render_string_len(int x, int y, const char *s, size_t len, SgColor color)
+int sg_render_string_len(SgPoint p, const char *s, size_t len, SgColor color)
 {
+	int w = 0;
 	size_t i = 0;
 	for(uint8_t c; (c = s[i]) && i < len; ++i)
 	{
-		x += sg_render_char(x, y, c, color);
+		w += sg_render_char(sg_point(p.x + w, p.y), c, color);
 	}
+
+	return w;
 }
 
 int sg_char_width(uint8_t c)
@@ -1249,28 +1255,26 @@ void sg_label(SgRect d, const char *text, int flags)
 	int valign = flags & SG_VALIGN_MASK;
 	int halign = flags & SG_HALIGN_MASK;
 
-	int rx = d.x;
+	SgPoint r = { d.x, d.y };
 	if(halign == SG_HALIGN_CENTER)
 	{
-		rx += d.w / 2 - sg_string_width(text) / 2;
+		r.x += d.w / 2 - sg_string_width(text) / 2;
 	}
 	else if(halign == SG_HALIGN_RIGHT)
 	{
-		rx += d.w - sg_string_width(text);
+		r.x += d.w - sg_string_width(text);
 	}
 
-	int ry = d.y;
 	if(valign == SG_VALIGN_CENTER)
 	{
-		ry += d.h / 2 - _sg_fontatlas->FontHeight / 2;
+		r.y += d.h / 2 - _sg_fontatlas->FontHeight / 2;
 	}
 	else if(valign == SG_VALIGN_BOTTOM)
 	{
-
-		ry += d.h - _sg_fontatlas->FontHeight;
+		r.y += d.h - _sg_fontatlas->FontHeight;
 	}
 
-	sg_render_string(rx, ry, text, _sg_color_text);
+	sg_render_string(r, text, _sg_color_text);
 }
 
 /* ========================================================================== */
@@ -1287,8 +1291,8 @@ int sg_button(SgRect d, const char *text)
 		hover ? (active ? _sg_color_border_active : _sg_color_border_hover) : _sg_color_border);
 
 	sg_render_string(
-		d.x + d.w / 2 - sg_string_width(text) / 2,
-		d.y + d.h / 2 - _sg_fontatlas->FontHeight / 2,
+		sg_point(d.x + d.w / 2 - sg_string_width(text) / 2,
+			d.y + d.h / 2 - _sg_fontatlas->FontHeight / 2),
 		text, hover ? (active ? _sg_color_text_active : _sg_color_text_hover) : _sg_color_text);
 
 	return hover && sg_is_mouse_button_pressed(SG_BUTTON_LEFT);
@@ -1321,8 +1325,8 @@ int sg_checkbox(SgRect d, bool *checked)
 	{
 		uint8_t c = sg_get_checkmark_char();
 		sg_render_char(
-			d.x + d.w / 2 - sg_char_width(c) / 2,
-			d.y + d.h / 2 - sg_char_height(c) / 2,
+			sg_point(d.x + d.w / 2 - sg_char_width(c) / 2,
+				d.y + d.h / 2 - sg_char_height(c) / 2),
 			c,
 			hover ? (active ? _sg_color_text_active : _sg_color_text_hover) : _sg_color_text);
 	}
@@ -1409,13 +1413,13 @@ int sg_select(SgRect d, const char *items[], size_t count, int *active)
 	const char *text = items[*active];
 
 	sg_render_string(
-		d.x + _sg_select_padding,
-		d.y + d.h / 2 - _sg_fontatlas->FontHeight / 2,
+		sg_point(d.x + _sg_select_padding,
+			d.y + d.h / 2 - _sg_fontatlas->FontHeight / 2),
 		text, hover ? (active ? _sg_color_text_active : _sg_color_text_hover) : _sg_color_text);
 
 	sg_render_char(
-		d.x + d.w - _sg_select_padding - sg_char_width(_sg_char_select),
-		d.y + d.h / 2 - sg_char_height(_sg_char_select) / 2,
+		sg_point(d.x + d.w - _sg_select_padding - sg_char_width(_sg_char_select),
+			d.y + d.h / 2 - sg_char_height(_sg_char_select) / 2),
 		_sg_char_select,
 		hover ? (active ? _sg_color_text_active : _sg_color_text_hover) : _sg_color_text);
 
@@ -1432,7 +1436,7 @@ int sg_select(SgRect d, const char *items[], size_t count, int *active)
 		}
 
 		SgRect b = sg_rect(d.x, d.y, d.w, d.h);
-		for(size_t i = 0; i < elems; ++i)
+		for(int i = 0; i < elems; ++i)
 		{
 			b.y += step_y;
 
@@ -1443,8 +1447,8 @@ int sg_select(SgRect d, const char *items[], size_t count, int *active)
 				hover ? (active ? _sg_color_border_active : _sg_color_border_hover) : _sg_color_border);
 
 			sg_render_string(
-				b.x + _sg_select_padding,
-				b.y + b.h / 2 - _sg_fontatlas->FontHeight / 2,
+				sg_point(b.x + _sg_select_padding,
+					b.y + b.h / 2 - _sg_fontatlas->FontHeight / 2),
 				items[i], hover ? (active ? _sg_color_text_active : _sg_color_text_hover) : _sg_color_text);
 		}
 	}
@@ -1738,8 +1742,7 @@ void sg_textbox_render(SgRect d, SgStringBuffer *sb)
 	if(_sg_tb_selection == _sg_tb_position)
 	{
 		sg_render_string_len(
-			d.x + _sg_textbox_padding_x,
-			text_y,
+			sg_point(d.x + _sg_textbox_padding_x, text_y),
 			sb->buffer, sb->length,
 			text_color);
 	}
@@ -1749,30 +1752,27 @@ void sg_textbox_render(SgRect d, SgStringBuffer *sb)
 		int sel_len = sg_max(_sg_tb_selection, _sg_tb_position) - sel_start;
 
 		sg_render_string_len(
-			d.x + _sg_textbox_padding_x,
-			text_y,
+			sg_point(d.x + _sg_textbox_padding_x, text_y),
 			sb->buffer, sel_start,
 			text_color);
 
 		int sel_x = sg_string_width_len(sb->buffer, sel_start);
 
 		sg_fill_rect(sg_rect(
-			d.x + _sg_textbox_padding_x + sel_x,
-			d.y + _cursor.y,
+			d.x + _sg_textbox_padding_x + sel_x, d.y + _cursor.y,
 			sg_string_width_len(sb->buffer + sel_start, sel_len),
 			_cursor.h),
 			bg_color_sel);
 
 		sg_render_string_len(
-			d.x + _sg_textbox_padding_x + sel_x,
-			text_y,
+			sg_point(d.x + _sg_textbox_padding_x + sel_x, text_y),
 			sb->buffer + sel_start, sel_len,
 			text_color_sel);
 
 		sg_render_string_len(
-			d.x + _sg_textbox_padding_x +
+			sg_point(d.x + _sg_textbox_padding_x +
 				sg_string_width_len(sb->buffer, sel_start + sel_len),
-			text_y,
+				text_y),
 			sb->buffer + sel_start + sel_len,
 			sb->length - sel_start - sel_len,
 			text_color);
