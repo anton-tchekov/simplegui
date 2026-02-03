@@ -15,6 +15,11 @@ is still missing:
 
 - Add Asserts / Error checks where missing
 - Create example projects
+	- For each control
+	- For 2d graphics features
+	- More complex apps
+	- Styling elements
+
 - Write documentation for controls
 - Add screenshots
 
