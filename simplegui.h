@@ -1670,17 +1670,27 @@ static int sg_textbox_paste(SgStringBuffer *sb)
 
 static void sg_textbox_click(SgStringBuffer *sb, int x, int tb_x)
 {
-	int offset = x - tb_x - sg_theme->TextboxPaddingX;
-	if(offset < 0) { return; }
-	// TODO
-	size_t pos = 0; // (offset + (FONT_WIDTH / 2)) / FONT_WIDTH;
-	if(pos > sb->length)
+	tb_x += sg_theme->TextboxPaddingX;
+	if(x < tb_x)
 	{
-		pos = sb->length;
+		_sg_tb_position = 0;
+		return;
 	}
 
-	_sg_tb_position = pos;
-	_sg_tb_selection = pos;
+	size_t i = 0;
+	for(uint8_t c; (c = sb->buffer[i]) && i < sb->length; ++i)
+	{
+		int w = sg_char_width(c);
+		if(x < tb_x + w / 2)
+		{
+			_sg_tb_position = i;
+			return;
+		}
+
+		tb_x += w;
+	}
+
+	_sg_tb_position = sb->length;
 }
 
 static void sg_textbox_left(void)
@@ -1841,6 +1851,12 @@ int sg_textbox_key_events(SgStringBuffer *sb)
 	return result;
 }
 
+bool sg_shift_down(void)
+{
+	return sg_is_key_down(SDL_SCANCODE_LSHIFT) ||
+		sg_is_key_down(SDL_SCANCODE_RSHIFT);
+}
+
 int sg_textbox(SgRect d, SgStringBuffer *sb)
 {
 	int index = 0;
@@ -1899,6 +1915,19 @@ int sg_textbox(SgRect d, SgStringBuffer *sb)
 			sg_theme->Cursor.w,
 			_sg_fontatlas->FontHeight + sg_theme->Cursor.h),
 			sg_theme->CursorColor);
+
+		if(sg_rect_contains_mouse(d))
+		{
+			if(sg_is_mouse_button_down(SG_BUTTON_LEFT))
+			{
+				sg_textbox_click(sb, sg_mouse_position().x, d.x);
+			}
+
+			if(sg_is_mouse_button_pressed(SG_BUTTON_LEFT) && !sg_shift_down())
+			{
+				_sg_tb_selection = _sg_tb_position;
+			}
+		}
 
 		return sg_textbox_key_events(sb);
 	}
