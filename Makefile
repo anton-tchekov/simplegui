@@ -1,6 +1,7 @@
 # Make all examples
 all:
 	clear
+	cd examples/basic-app/ && make $@
 	cd examples/change-font/ && make $@
 	cd examples/simple-button/ && make $@
 	cd examples/simple-checkbox/ && make $@

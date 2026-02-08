@@ -1358,7 +1358,7 @@ SgTheme sg_default_theme =
 	.SelectPageItems = 5,
 	.SelectPaddingX = 10,
 	.BorderThickness = { 2, 2, 1 },
-	.Cursor = { 0, 0, 2, 16 },
+	.Cursor = { 0, 0, 2, 0 },
 	.SelectionColor = 0xff8200,
 	.SelectionTextColor = 0x310000,
 	.CursorColor = 0xff8200
@@ -1390,16 +1390,36 @@ bool sg_rect_contains_mouse(SgRect rect)
 /* common functions for controls */
 void sg_box(SgRect d, int index)
 {
-	sg_fill_rect(d, sg_theme->InnerColor[index]);
-	sg_draw_rect(d, sg_theme->BorderThickness[index], sg_theme->BorderColor[index]);
+	int border = sg_theme->BorderThickness[index];
+	SgRect inner = { d.x + border, d.y + border, d.w - 2 * border, d.h - 2 * border };
+
+	sg_fill_rect(inner, sg_theme->InnerColor[index]);
+	sg_draw_rect(d, border, sg_theme->BorderColor[index]);
 }
 
 bool sg_clicked(SgRect d, int *index)
 {
 	bool hover = sg_rect_contains_mouse(d);
 	bool active = sg_is_mouse_button_down(SG_BUTTON_LEFT);
-	*index = active ? SG_INDEX_ACTIVE : (hover ? SG_INDEX_HOVER : SG_INDEX_DEFAULT);
+	*index = (hover ? (active ? SG_INDEX_ACTIVE : SG_INDEX_HOVER) : SG_INDEX_DEFAULT);
 	return hover && sg_is_mouse_button_pressed(SG_BUTTON_LEFT);
+}
+
+bool sg_selected(SgRect d, int *index)
+{
+	bool hover = sg_rect_contains_mouse(d);
+	bool sel = _sg_selected && sg_rect_contains_point(d, _sg_selected_point);
+	bool down = sg_is_mouse_button_down(SG_BUTTON_LEFT);
+	bool pressed = hover && down;
+	if(pressed)
+	{
+		_sg_selected = true;
+		_sg_selected_point = sg_mouse_position();
+	}
+
+	bool active = pressed || sel;
+	*index = active ? SG_INDEX_ACTIVE : (hover ? SG_INDEX_HOVER : SG_INDEX_DEFAULT);
+	return active;
 }
 
 /* ========================================================================== */
@@ -1459,19 +1479,8 @@ bool sg_checkbox(SgRect d, bool *checked)
 /* sg_slider */
 int sg_slider(SgRect d, double *value, double min, double max)
 {
-	bool hover = sg_rect_contains_mouse(d);
-	bool sel = _sg_selected && sg_rect_contains_point(d, _sg_selected_point);
-	bool down = sg_is_mouse_button_down(SG_BUTTON_LEFT);
-	bool pressed = hover && down;
-	SgPoint mouse = sg_mouse_position();
-	if(pressed)
-	{
-		_sg_selected = true;
-		_sg_selected_point = mouse;
-	}
-
-	bool active = pressed || sel;
-	int index = active ? SG_INDEX_ACTIVE : (hover ? SG_INDEX_HOVER : SG_INDEX_DEFAULT);
+	int index;
+	bool active = sg_selected(d, &index);
 
 	sg_fill_rect(sg_rect(d.x, d.y + d.h / 2 - sg_theme->SliderRailHeight / 2, d.w, sg_theme->SliderRailHeight),
 		sg_theme->SliderRailColor[index]);
@@ -1483,6 +1492,7 @@ int sg_slider(SgRect d, double *value, double min, double max)
 	double prev_value = *value;
 	if(active)
 	{
+		SgPoint mouse = sg_mouse_position();
 		double percent = (mouse.x - (d.x + sg_theme->SliderThumbWidth / 2)) /
 			(double)(d.w - sg_theme->SliderThumbWidth);
 		*value = min + sg_fclamp(percent, 0.0, 1.0) * (max - min);
@@ -1507,19 +1517,8 @@ int sg_select(SgRect d, const char *items[], size_t count, size_t *current)
 {
 	assert(count > 0);
 
-	bool hover = sg_rect_contains_mouse(d);
-	bool sel = _sg_selected && sg_rect_contains_point(d, _sg_selected_point);
-	bool down = sg_is_mouse_button_down(SG_BUTTON_LEFT);
-	bool pressed = hover && down;
-	SgPoint mouse = sg_mouse_position();
-	if(pressed)
-	{
-		_sg_selected = true;
-		_sg_selected_point = mouse;
-	}
-
-	bool active = pressed || sel;
-	int index = active ? SG_INDEX_ACTIVE : (hover ? SG_INDEX_HOVER : SG_INDEX_DEFAULT);
+	int index;
+	bool active = sg_selected(d, &index);
 
 	sg_box(d, index);
 
@@ -1837,24 +1836,12 @@ int sg_textbox_key_events(SgStringBuffer *sb)
 
 int sg_textbox(SgRect d, SgStringBuffer *sb)
 {
-	int border_thickness = 2;
-	SgColor inner_color = sg_theme->InnerColor[SG_INDEX_DEFAULT];
-	SgColor border_color = sg_theme->BorderColor[SG_INDEX_DEFAULT];
 	SgColor text_color = sg_theme->TextColor[SG_INDEX_DEFAULT];
-	SgColor text_color_sel = sg_theme->SelectionTextColor;
-	SgColor bg_color_sel = sg_theme->SelectionColor;
-	SgColor cursor_color = sg_theme->CursorColor;
-	int selected = 0;
 
-	sg_fill_rect(
-		sg_rect(
-			d.x + border_thickness,
-			d.y + border_thickness,
-			d.w - 2 * border_thickness,
-			d.h - 2 * border_thickness),
-		inner_color);
+	int index = 0;
+	bool selected = sg_selected(d, &index);
 
-	sg_draw_rect(d, border_thickness, border_color);
+	sg_box(d, index);
 
 	int text_y = d.y + d.h / 2 - _sg_fontatlas->FontHeight / 2;
 
@@ -1878,15 +1865,16 @@ int sg_textbox(SgRect d, SgStringBuffer *sb)
 		int sel_x = sg_string_width_len(sb->buffer, sel_start);
 
 		sg_fill_rect(sg_rect(
-			d.x + sg_theme->TextboxPaddingX + sel_x, d.y + sg_theme->Cursor.y,
+			d.x + sg_theme->TextboxPaddingX + sel_x,
+			text_y,
 			sg_string_width_len(sb->buffer + sel_start, sel_len),
-			sg_theme->Cursor.h),
-			bg_color_sel);
+			_sg_fontatlas->FontHeight),
+			sg_theme->SelectionColor);
 
 		sg_render_string_len(
 			sg_point(d.x + sg_theme->TextboxPaddingX + sel_x, text_y),
 			sb->buffer + sel_start, sel_len,
-			text_color_sel);
+			sg_theme->SelectionTextColor);
 
 		sg_render_string_len(
 			sg_point(d.x + sg_theme->TextboxPaddingX +
@@ -1901,13 +1889,13 @@ int sg_textbox(SgRect d, SgStringBuffer *sb)
 	{
 		sg_fill_rect(sg_rect(d.x + sg_theme->TextboxPaddingX +
 			sg_string_width_len(sb->buffer, _sg_tb_position) + sg_theme->Cursor.x,
-			d.y + sg_theme->Cursor.y,
+			text_y + sg_theme->Cursor.y,
 			sg_theme->Cursor.w,
-			sg_theme->Cursor.h),
-			cursor_color);
+			_sg_fontatlas->FontHeight + sg_theme->Cursor.h),
+			sg_theme->CursorColor);
 	}
 
-	return 0;
+	return sg_textbox_key_events(sb);
 }
 
 /* ========================================================================== */
