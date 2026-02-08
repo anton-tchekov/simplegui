@@ -11,7 +11,6 @@ is still missing:
 
 - Select
 - Textbox
-- Styling functions
 
 - Add Asserts / Error checks where missing
 - Create example projects

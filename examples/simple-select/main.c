@@ -3,8 +3,6 @@
 #define SIMPLEGUI_IMPLEMENTATION
 #include "../../simplegui.h"
 
-#define ARRLEN(X) (sizeof(X) / sizeof(*X))
-
 int main(void)
 {
 	size_t cur = 0;
@@ -23,7 +21,7 @@ int main(void)
 		sg_begin();
 
 		sg_label(sg_rect(50, 50, 0, 0), "Select Color:", 0);
-		if(sg_select(sg_rect(50, 70, 200, 32), items, ARRLEN(items), &cur))
+		if(sg_select(sg_rect(50, 70, 200, 32), items, SG_ARRLEN(items), &cur))
 		{
 			printf("Select changed value!\n");
 		}
