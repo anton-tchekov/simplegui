@@ -9,17 +9,13 @@ add to a project.
 This project is work in progress, most of the functionality
 is still missing:
 
-- Select
-- Textbox
 
-- Cursor sizing
 - Text select left/right key
+- Styling elements
 
+- Select element
 - Add Asserts / Error checks where missing
-- Create example projects
-	- More complex apps
-	- Styling elements
-
+- More complex example apps
 - Write documentation for controls
 - Add screenshots
 
