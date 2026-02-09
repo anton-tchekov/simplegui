@@ -213,6 +213,11 @@ static inline SgPoint sg_point(int x, int y)
 	return point;
 }
 
+static inline bool sg_point_eq(SgPoint a, SgPoint b)
+{
+	return a.x == b.x && a.y == b.y;
+}
+
 /* SgSize */
 typedef struct
 {
@@ -355,6 +360,8 @@ typedef struct
 	SgColor WindowBackgroundColor;
 	SgColor TextColor[3];
 	SgColor InnerColor[3];
+	SgColor ButtonInnerColor[3];
+	SgColor TextboxInnerColor[3];
 	SgColor BorderColor[3];
 	SgColor SliderThumbColor[3];
 	SgColor SliderRailColor[3];
@@ -473,6 +480,15 @@ uint8_t *_sg_key_released = NULL;
 SgPoint _sg_selected_point;
 bool _sg_selected = false;
 bool _sg_drag = false;
+
+int sg_double_click_ms = 500;
+SgPoint sg_multi_click_point;
+uint32_t sg_double_click_time;
+uint32_t sg_triple_click_time;
+
+bool sg_double_click;
+bool sg_triple_click;
+bool _sg_tb_multi_clicked = false;
 
 #define SG_FONTDEBUG 0
 
@@ -1011,7 +1027,7 @@ void sg_init(SgSize size, const char *title)
 		exit(1);
 	}
 
-	SDL_SetRenderDrawBlendMode(_sg_renderer, SDL_BLENDMODE_BLEND);
+	SDL_SetRenderDrawBlendMode(_sg_renderer, SDL_BLENDMODE_NONE);
 
 	_sg_key_state = SDL_GetKeyboardState(&_sg_num_keys);
 	_sg_key_pressed = sg_calloc(_sg_num_keys, 1);
@@ -1109,6 +1125,29 @@ static void sg_handle_mouse_button_down(SDL_Event *e)
 	if(e->button.button == SDL_BUTTON_LEFT)
 	{
 		_sg_selected = false;
+
+		SgPoint click_point = sg_point(e->button.x, e->button.y);
+
+		uint32_t time = SDL_GetTicks();
+		if(time < sg_triple_click_time + sg_double_click_ms &&
+			sg_point_eq(sg_multi_click_point, click_point))
+		{
+			sg_double_click_time = 0;
+			sg_triple_click_time = 0;
+			sg_triple_click = true;
+		}
+		else if(time < sg_double_click_time + sg_double_click_ms &&
+			sg_point_eq(sg_multi_click_point, click_point))
+		{
+			sg_triple_click_time = sg_double_click_time;
+			sg_double_click_time = 0;
+			sg_double_click = true;
+		}
+		else
+		{
+			sg_double_click_time = time;
+			sg_multi_click_point = click_point;
+		}
 	}
 
 	_sg_mouse_button_pressed |= SDL_BUTTON(e->button.button);
@@ -1119,6 +1158,7 @@ static void sg_handle_mouse_button_up(SDL_Event *e)
 	if(e->button.button == SDL_BUTTON_LEFT)
 	{
 		_sg_drag = false;
+		_sg_tb_multi_clicked = false;
 	}
 
 	_sg_mouse_button_released |= SDL_BUTTON(e->button.button);
@@ -1142,6 +1182,9 @@ static void sg_handle_key_up(SDL_Event *e)
 
 void sg_begin(void)
 {
+	sg_double_click = false;
+	sg_triple_click = false;
+
 	_sg_keys_top = 0;
 	_sg_scroll = sg_point(0, 0);
 	_sg_mouse_button_pressed = 0;
@@ -1357,6 +1400,8 @@ SgTheme sg_default_theme =
 	.WindowBackgroundColor = 0x100000,
 	.TextColor = { 0xff8200, 0xff8200, 0xff8200 },
 	.InnerColor = { 0x310000, 0x7b0000, 0x510000 },
+	.ButtonInnerColor = { 0x310000, 0x7b0000, 0x510000 },
+	.TextboxInnerColor = { 0x310000, 0x7b0000, 0x510000 },
 	.BorderColor = { 0x7b0000, 0xff8200, 0xff8200 },
 	.SliderThumbColor = { 0x7b0000, 0xff8200, 0xffb200 },
 	.SliderRailColor = { 0x510000, 0x7b0000, 0x9b0000 },
@@ -1396,12 +1441,12 @@ bool sg_rect_contains_mouse(SgRect rect)
 
 /* ========================================================================== */
 /* common functions for controls */
-void sg_box(SgRect d, int index)
+void sg_box(SgRect d, int index, SgColor *inner_color)
 {
 	int border = sg_theme->BorderThickness[index];
 	SgRect inner = { d.x + border, d.y + border, d.w - 2 * border, d.h - 2 * border };
 
-	sg_fill_rect(inner, sg_theme->InnerColor[index]);
+	sg_fill_rect(inner, inner_color[index]);
 	sg_draw_rect(d, border, sg_theme->BorderColor[index]);
 }
 
@@ -1445,7 +1490,7 @@ bool sg_button(SgRect d, const char *text)
 	int index;
 	bool clicked = sg_clicked(d, &index);
 
-	sg_box(d, index);
+	sg_box(d, index, sg_theme->ButtonInnerColor);
 	sg_render_string_in_rect(d, text, SG_CENTER, sg_theme->TextColor[index]);
 
 	return clicked;
@@ -1468,7 +1513,7 @@ bool sg_checkbox(SgRect d, bool *checked)
 	int index;
 	bool clicked = sg_clicked(d, &index);
 
-	sg_box(d, index);
+	sg_box(d, index, sg_theme->InnerColor);
 	if(*checked)
 	{
 		sg_render_char_in_rect(d, sg_get_checkmark_char(),
@@ -1528,7 +1573,7 @@ int sg_select(SgRect d, const char *items[], size_t count, size_t *current)
 	int index;
 	bool selected = sg_selected(d, &index, &_sg_selected);
 
-	sg_box(d, index);
+	sg_box(d, index, sg_theme->InnerColor);
 
 	sg_render_string(
 		sg_point(d.x + sg_theme->SelectPaddingX, d.y + d.h / 2 - _sg_fontatlas->FontHeight / 2),
@@ -1554,7 +1599,7 @@ int sg_select(SgRect d, const char *items[], size_t count, size_t *current)
 		{
 			b.y += step_y;
 
-			sg_box(b, index);
+			sg_box(b, index, sg_theme->InnerColor);
 			sg_render_string(
 				sg_point(b.x + sg_theme->SelectPaddingX,
 					b.y + b.h / 2 - _sg_fontatlas->FontHeight / 2),
@@ -1600,7 +1645,7 @@ static void sg_textbox_selection_replace(SgStringBuffer *sb,
 	_sg_tb_selection = _sg_tb_position;
 }
 
-static int sg_textbox_backspace(SgStringBuffer *sb)
+static void sg_textbox_backspace(SgStringBuffer *sb)
 {
 	if(_sg_tb_selection != _sg_tb_position)
 	{
@@ -1612,11 +1657,9 @@ static int sg_textbox_backspace(SgStringBuffer *sb)
 		_sg_tb_selection = _sg_tb_position;
 		sg_textbox_remove(sb, _sg_tb_position);
 	}
-
-	return 0;
 }
 
-static int sg_textbox_delete(SgStringBuffer *sb)
+static void sg_textbox_delete(SgStringBuffer *sb)
 {
 	if(_sg_tb_selection != _sg_tb_position)
 	{
@@ -1626,15 +1669,12 @@ static int sg_textbox_delete(SgStringBuffer *sb)
 	{
 		sg_textbox_remove(sb, _sg_tb_position);
 	}
-
-	return 0;
 }
 
-static int sg_textbox_char(SgStringBuffer *sb, uint32_t chr)
+static void sg_textbox_char(SgStringBuffer *sb, uint32_t chr)
 {
 	char ins = chr;
 	sg_textbox_selection_replace(sb, &ins, 1);
-	return 0;
 }
 
 static void sg_tb_selection_save(SgStringBuffer *sb)
@@ -1653,28 +1693,25 @@ static void sg_textbox_copy(SgStringBuffer *sb)
 	sg_tb_selection_save(sb);
 }
 
-static int sg_textbox_cut(SgStringBuffer *sb)
+static void sg_textbox_cut(SgStringBuffer *sb)
 {
 	sg_tb_selection_save(sb);
 	sg_textbox_selection_replace(sb, NULL, 0);
-	return 0;
 }
 
-static int sg_textbox_paste(SgStringBuffer *sb)
+static void sg_textbox_paste(SgStringBuffer *sb)
 {
 	char *p = SDL_GetClipboardText();
 	sg_textbox_selection_replace(sb, p, strlen(p));
 	free(p);
-	return 0;
 }
 
-static void sg_textbox_click(SgStringBuffer *sb, int x, int tb_x)
+static int sg_textbox_click(SgStringBuffer *sb, int x, int tb_x)
 {
 	tb_x += sg_theme->TextboxPaddingX;
 	if(x < tb_x)
 	{
-		_sg_tb_position = 0;
-		return;
+		return 0;
 	}
 
 	size_t i = 0;
@@ -1683,14 +1720,13 @@ static void sg_textbox_click(SgStringBuffer *sb, int x, int tb_x)
 		int w = sg_char_width(c);
 		if(x < tb_x + w / 2)
 		{
-			_sg_tb_position = i;
-			return;
+			return i;
 		}
 
 		tb_x += w;
 	}
 
-	_sg_tb_position = sb->length;
+	return sb->length;
 }
 
 static void sg_textbox_left(void)
@@ -1800,11 +1836,11 @@ int sg_textbox_event_key(SgStringBuffer *sb, uint32_t key, uint32_t chr)
 	}
 	else if(nomods == SDL_SCANCODE_BACKSPACE)
 	{
-		return sg_textbox_backspace(sb);
+		sg_textbox_backspace(sb);
 	}
 	else if(nomods == SDL_SCANCODE_DELETE)
 	{
-		return sg_textbox_delete(sb);
+		sg_textbox_delete(sb);
 	}
 	else if(key == (SDL_SCANCODE_A | MOD_CTRL))
 	{
@@ -1816,11 +1852,11 @@ int sg_textbox_event_key(SgStringBuffer *sb, uint32_t key, uint32_t chr)
 	}
 	else if(key == (SDL_SCANCODE_X | MOD_CTRL))
 	{
-		return sg_textbox_cut(sb);
+		sg_textbox_cut(sb);
 	}
 	else if(key == (SDL_SCANCODE_V | MOD_CTRL))
 	{
-		return sg_textbox_paste(sb);
+		sg_textbox_paste(sb);
 	}
 	else if(nomods == SDL_SCANCODE_RETURN)
 	{
@@ -1828,7 +1864,7 @@ int sg_textbox_event_key(SgStringBuffer *sb, uint32_t key, uint32_t chr)
 	}
 	else if(isprint(chr))
 	{
-		return sg_textbox_char(sb, chr);
+		sg_textbox_char(sb, chr);
 	}
 
 	return 0;
@@ -1857,17 +1893,67 @@ bool sg_shift_down(void)
 		sg_is_key_down(SDL_SCANCODE_RSHIFT);
 }
 
+bool sg_char_stop(int c)
+{
+	return c == ' ' || (ispunct(c) && c != '_');
+}
+
 int sg_textbox(SgRect d, SgStringBuffer *sb)
 {
-	int index = 0;
+	int result = 0;
+	int index;
 	bool selected = sg_selected(d, &index, &_sg_selected);
 	SgColor text_color = sg_theme->TextColor[index];
 
-	sg_box(d, index);
+	if(selected)
+	{
+		if(sg_rect_contains_mouse(d))
+		{
+			if(sg_triple_click)
+			{
+				_sg_tb_position = 0;
+				_sg_tb_selection = sb->length;
+				_sg_tb_multi_clicked = true;
+			}
+			else if(sg_double_click)
+			{
+				_sg_tb_position = sg_textbox_click(sb, sg_mouse_position().x, d.x);
+
+				for(_sg_tb_selection = _sg_tb_position;
+					_sg_tb_selection < (int)sb->length && !sg_char_stop(sb->buffer[_sg_tb_selection]);
+					++_sg_tb_selection)
+				{
+				}
+
+				for(; _sg_tb_position > 0 && !sg_char_stop(sb->buffer[_sg_tb_position - 1]);
+					--_sg_tb_position)
+				{
+				}
+
+				_sg_tb_multi_clicked = true;
+			}
+			else
+			{
+				if(sg_is_mouse_button_pressed(SG_BUTTON_LEFT) && !sg_shift_down())
+				{
+					_sg_tb_position = sg_textbox_click(sb, sg_mouse_position().x, d.x);
+					_sg_tb_selection = _sg_tb_position;
+				}
+				else if(sg_is_mouse_button_down(SG_BUTTON_LEFT) && !_sg_tb_multi_clicked)
+				{
+					_sg_tb_position = sg_textbox_click(sb, sg_mouse_position().x, d.x);
+				}
+			}
+		}
+
+		result = sg_textbox_key_events(sb);
+	}
+
+	sg_box(d, index, sg_theme->TextboxInnerColor);
 
 	int text_y = d.y + d.h / 2 - _sg_fontatlas->FontHeight / 2;
 
-	if(_sg_tb_selection == _sg_tb_position)
+	if(_sg_tb_selection == _sg_tb_position || !selected)
 	{
 		sg_render_string_len(
 			sg_point(d.x + sg_theme->TextboxPaddingX, text_y),
@@ -1888,9 +1974,9 @@ int sg_textbox(SgRect d, SgStringBuffer *sb)
 
 		sg_fill_rect(sg_rect(
 			d.x + sg_theme->TextboxPaddingX + sel_x,
-			text_y,
+			text_y + sg_theme->Cursor.y,
 			sg_string_width_len(sb->buffer + sel_start, sel_len),
-			_sg_fontatlas->FontHeight),
+			_sg_fontatlas->FontHeight + sg_theme->Cursor.h),
 			sg_theme->SelectionColor);
 
 		sg_render_string_len(
@@ -1915,24 +2001,9 @@ int sg_textbox(SgRect d, SgStringBuffer *sb)
 			sg_theme->Cursor.w,
 			_sg_fontatlas->FontHeight + sg_theme->Cursor.h),
 			sg_theme->CursorColor);
-
-		if(sg_rect_contains_mouse(d))
-		{
-			if(sg_is_mouse_button_down(SG_BUTTON_LEFT))
-			{
-				sg_textbox_click(sb, sg_mouse_position().x, d.x);
-			}
-
-			if(sg_is_mouse_button_pressed(SG_BUTTON_LEFT) && !sg_shift_down())
-			{
-				_sg_tb_selection = _sg_tb_position;
-			}
-		}
-
-		return sg_textbox_key_events(sb);
 	}
 
-	return 0;
+	return result;
 }
 
 /* ========================================================================== */

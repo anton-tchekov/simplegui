@@ -12,10 +12,12 @@ is still missing:
 - Select
 - Textbox
 
+- Text rendering ugly
+- Cursor sizing
+- Text select left/right key
+
 - Add Asserts / Error checks where missing
 - Create example projects
-	- For each control
-	- For 2d graphics features
 	- More complex apps
 	- Styling elements
 
