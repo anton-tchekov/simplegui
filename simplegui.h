@@ -362,6 +362,7 @@ typedef struct
 	SgColor InnerColor[3];
 	SgColor ButtonInnerColor[3];
 	SgColor TextboxInnerColor[3];
+	SgColor CheckboxInnerColor[3];
 	SgColor BorderColor[3];
 	SgColor SliderThumbColor[3];
 	SgColor SliderRailColor[3];
@@ -1403,6 +1404,7 @@ SgTheme sg_default_theme =
 	.InnerColor = { 0x310000, 0x7b0000, 0x510000 },
 	.ButtonInnerColor = { 0x310000, 0x7b0000, 0x510000 },
 	.TextboxInnerColor = { 0x310000, 0x7b0000, 0x510000 },
+	.CheckboxInnerColor = { 0x310000, 0x7b0000, 0x510000 },
 	.BorderColor = { 0x7b0000, 0xff8200, 0xff8200 },
 	.SliderThumbColor = { 0x7b0000, 0xff8200, 0xffb200 },
 	.SliderRailColor = { 0x510000, 0x7b0000, 0x9b0000 },
@@ -1514,7 +1516,7 @@ bool sg_checkbox(SgRect d, bool *checked)
 	int index;
 	bool clicked = sg_clicked(d, &index);
 
-	sg_box(d, index, sg_theme->InnerColor);
+	sg_box(d, index, sg_theme->CheckboxInnerColor);
 	if(*checked)
 	{
 		sg_render_char_in_rect(d, sg_get_checkmark_char(),

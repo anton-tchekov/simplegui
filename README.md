@@ -9,13 +9,18 @@ add to a project.
 This project is work in progress, most of the functionality
 is still missing:
 
-- Styling elements
-
 - Select element
+	- Overlay above other elements (render at end)
+	- Scroll bar (indicator) -> scroll wheel
+	- Styling
+	- Choose selected element
+
+- Write documentation for controls
 - Add Asserts / Error checks where missing
 - More complex example apps
-- Write documentation for controls
 - Add screenshots
+
+- Textbox Overflow
 
 ## Features
 

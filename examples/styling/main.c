@@ -21,6 +21,7 @@ int main(void)
 
 	SgFontAtlas fontatlas = sg_font_atlas_create(MAX_CHAR_SIZE, FONT_SIZE);
 	sg_fontatlas_add_ascii(fontatlas, font);
+	sg_fontatlas_add_default_icons(fontatlas);
 	sg_fontatlas_update(fontatlas);
 	sg_font_destroy(font);
 	sg_set_fontatlas(fontatlas);
@@ -29,18 +30,19 @@ int main(void)
 	{
 		.WindowBackgroundColor = 0xf0f0f0,
 		.TextColor = { 0x000000, 0x000000, 0x000000 },
-		.InnerColor = { 0xe1e1e1, 0x7b0000, 0x510000 },
-		.ButtonInnerColor = { 0xe1e1e1, 0x7b0000, 0x510000 },
+		.InnerColor = { 0xe1e1e1, 0xdddddd, 0xcccccc },
+		.ButtonInnerColor = { 0xe1e1e1, 0xdddddd, 0xcccccc },
 		.TextboxInnerColor = { 0xFFFFFF, 0xFFFFFF, 0xFFFFFF },
-		.BorderColor = { 0xadadad, 0xff8200, 0xff8200 },
-		.SliderThumbColor = { 0x7b0000, 0xff8200, 0xffb200 },
-		.SliderRailColor = { 0x510000, 0x7b0000, 0x9b0000 },
+		.CheckboxInnerColor = { 0xFFFFFF, 0xFFFFFF, 0xFFFFFF },
+		.BorderColor = { 0xadadad, 0x777777, 0x52a9fd },
+		.SliderThumbColor = { 0x999999, 0x888888, 0x52a9fd },
+		.SliderRailColor = { 0xcccccc, 0xbbbbbb, 0xaaaaaa },
 		.SliderThumbWidth = 6,
 		.SliderRailHeight = 6,
 		.TextboxPaddingX = 5,
 		.SelectPageItems = 5,
 		.SelectPaddingX = 10,
-		.BorderThickness = { 1, 1, 1 },
+		.BorderThickness = { 1, 1, 2 },
 		.Cursor = { -1, -1, 1, 2 },
 		.SelectionColor = 0x3399ff,
 		.SelectionTextColor = 0xffffff,
@@ -57,18 +59,37 @@ int main(void)
 		.capacity = sizeof(buf)
 	};
 
+	bool checked = false;
+	double value = 0.0;
+
+	size_t cur = 1;
+	const char *items[] =
+	{
+		"January",
+		"February",
+		"March",
+		"April",
+		"May",
+		"June",
+		"July",
+		"August",
+		"September",
+		"October",
+		"November",
+		"December"
+	};
+
 	while(sg_running())
 	{
 		sg_begin();
 
-		sg_fill_rect(sg_rect(5, 5, 100, 100), SG_BLUE);
-		sg_render_string(sg_point(10, 10), "Hello World!", SG_WHITE);
+		sg_render_string(sg_point(10, 10), "Hello World!", SG_BLACK);
 
-
-		sg_button(sg_rect(10, 100, 200, 30), "Click Me!");
-
-
-		sg_textbox(sg_rect(10, 150, 200, 30), &sb);
+		sg_select(sg_rect(10, 50, 200, 30), items, SG_ARRLEN(items), &cur);
+		sg_textbox(sg_rect(10, 100, 200, 30), &sb);
+		sg_slider(sg_rect(10, 150, 800, 30), &value, 0.0, 100.0);
+		sg_checkbox(sg_rect(10, 200, 30, 30), &checked);
+		sg_button(sg_rect(10, 250, 200, 30), "Click Me!");
 
 		sg_update();
 	}
