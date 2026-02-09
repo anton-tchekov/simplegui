@@ -6,7 +6,7 @@
 #define MAX_CHAR_SIZE 64
 #define FONT_SIZE     32
 
-#define FONT_FILE       "arial.ttf"
+#define FONT_FILE       "../fonts/arial.ttf"
 
 int main(void)
 {

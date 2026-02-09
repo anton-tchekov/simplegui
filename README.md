@@ -9,6 +9,8 @@ add to a project.
 This project is work in progress, most of the functionality
 is still missing:
 
+- Mouse down style is laggy??? (mouse_down check)
+
 - Select element
 	- Click again to deselect
 	- Overlay above other elements (render at end)
@@ -20,8 +22,7 @@ is still missing:
 - Add Asserts / Error checks where missing
 - More complex example apps
 - Add screenshots
-
-- Textbox Overflow
+- Textbox Overflow Bug
 
 ## Features
 

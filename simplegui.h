@@ -397,6 +397,10 @@ typedef struct
 	SgColor SelectInnerColor[3];
 	SgColor SelectBorderColor[3];
 	int SelectBorderThickness[3];
+	SgColor SelectPageBorder;
+	SgColor SelectItemInnerColor[2];
+	SgColor SelectItemTextColor[2];
+	int SelectItemPadding;
 	int SelectPageItems;
 	int SelectPaddingX;
 } SgTheme;
@@ -410,9 +414,9 @@ bool sg_running(void);
 SgSize sg_get_window_size(void);
 
 /* mouse handling */
-int sg_is_mouse_button_down(int button);
-int sg_is_mouse_button_pressed(int button);
-int sg_is_mouse_button_released(int button);
+bool sg_is_mouse_button_down(int button);
+bool sg_is_mouse_button_pressed(int button);
+bool sg_is_mouse_button_released(int button);
 SgPoint sg_mouse_position(void);
 SgPoint sg_mouse_wheel(void);
 
@@ -502,6 +506,7 @@ uint8_t *_sg_key_pressed = NULL;
 uint8_t *_sg_key_released = NULL;
 
 SgPoint _sg_selected_point;
+static bool _sg_select_selected = false;
 bool _sg_selected = false;
 bool _sg_drag = false;
 
@@ -1265,19 +1270,19 @@ bool sg_running(void)
 
 /* ========================================================================== */
 /* mouse handling */
-int sg_is_mouse_button_down(int button)
+bool sg_is_mouse_button_down(int button)
 {
-	return SDL_GetMouseState(NULL, NULL) & button;
+	return ((SDL_GetMouseState(NULL, NULL) & button) != 0) || sg_is_mouse_button_pressed(button);
 }
 
-int sg_is_mouse_button_pressed(int button)
+bool sg_is_mouse_button_pressed(int button)
 {
-	return _sg_mouse_button_pressed & button;
+	return (_sg_mouse_button_pressed & button) != 0;
 }
 
-int sg_is_mouse_button_released(int button)
+bool sg_is_mouse_button_released(int button)
 {
-	return _sg_mouse_button_released & button;
+	return (_sg_mouse_button_released & button) != 0;
 }
 
 SgPoint sg_mouse_position(void)
@@ -1462,6 +1467,10 @@ SgTheme sg_default_theme =
 	.SelectInnerColor = { 0x310000, 0x7b0000, 0x510000 },
 	.SelectBorderColor = { 0x7b0000, 0xff8200, 0xff8200 },
 	.SelectBorderThickness = { 2, 2, 1 },
+	.SelectPageBorder = 0x333333,
+	.SelectItemInnerColor = { 0xFFFFFF, 0x3399ff },
+	.SelectItemTextColor = { 0x000000, 0xFFFFFF },
+	.SelectItemPadding = 2,
 	.SelectPageItems = 5,
 	.SelectPaddingX = 10,
 };
@@ -1614,12 +1623,26 @@ uint8_t sg_get_select_char(void)
 	return sg_char_width(_sg_char_select) > 0 ? _sg_char_select : 'V';
 }
 
+bool sg_select_selected(SgRect d, int *index)
+{
+	bool hover = sg_rect_contains_mouse(d);
+	if(hover && sg_is_mouse_button_pressed(SG_BUTTON_LEFT))
+	{
+		_sg_select_selected = !_sg_select_selected;
+		_sg_selected_point = sg_mouse_position();
+	}
+
+	bool sel = _sg_select_selected && sg_rect_contains_point(d, _sg_selected_point);
+	*index = sel ? SG_INDEX_ACTIVE : (hover ? SG_INDEX_HOVER : SG_INDEX_DEFAULT);
+	return sel;
+}
+
 int sg_select(SgRect d, const char *items[], size_t count, size_t *current)
 {
 	assert(count > 0);
 
 	int index;
-	bool selected = sg_selected(d, &index, &_sg_selected);
+	bool selected = sg_select_selected(d, &index);
 
 	sg_box(d, index, sg_theme->SelectInnerColor,
 		sg_theme->SelectBorderColor, sg_theme->SelectBorderThickness);

@@ -10,7 +10,7 @@
 
 int main(void)
 {
-	sg_init(sg_size(640, 480), "SimpleGUI Styling Elements");
+	sg_init(sg_size(640, 480), "Power Usage Calculator");
 
 	SgFont font = sg_font_load(FONT_FILE, FONT_SIZE);
 	if(!font)
@@ -21,6 +21,7 @@ int main(void)
 
 	SgFontAtlas fontatlas = sg_font_atlas_create(MAX_CHAR_SIZE, FONT_SIZE);
 	sg_fontatlas_add_ascii(fontatlas, font);
+	sg_fontatlas_add_utf8(fontatlas, font, "€", 0xFF);
 	sg_fontatlas_add_default_icons(fontatlas);
 	sg_fontatlas_update(fontatlas);
 	sg_font_destroy(font);
@@ -78,45 +79,87 @@ int main(void)
 
 	sg_theme = &theme;
 
-	char buf[64] = "Hello world";
-	SgStringBuffer sb =
+	const char *power_unit[] = { "watt [W]", "kilowatt [kW]" };
+	size_t power_unit_sel = 0;
+
+	const char *time_unit[] =
 	{
-		.buffer = buf,
-		.length = 11,
-		.capacity = sizeof(buf)
+		"minutes per day",
+		"hours per day",
+		"hours per week",
+		"hours per month",
+		"days per week",
+		"days per month",
+		"days per year",
+		"months per year"
 	};
 
-	bool checked = true;
-	double value = 0.0;
+	size_t time_unit_sel = 1;
 
-	size_t cur = 1;
-	const char *items[] =
+	const char *appliance[] =
 	{
-		"January",
-		"February",
-		"March",
-		"April",
-		"May",
-		"June",
-		"July",
-		"August",
-		"September",
-		"October",
-		"November",
-		"December"
+		"Define your own",
+		"Light bulb (LED)",
+		"Light bulb (Incandescent)",
+		"Refrigerator",
+		"Television",
+		"Microwave oven",
+		"Dishwasher"
 	};
+
+	size_t appliance_sel = 0;
+
+	char buf_power[64];
+	SgStringBuffer sb_power = { buf_power, 0, sizeof(buf_power) };
+
+	char buf_capacity[64];
+	SgStringBuffer sb_capacity = { buf_capacity, 0, sizeof(buf_capacity) };
+
+	char buf_usage[64];
+	SgStringBuffer sb_usage = { buf_usage, 0, sizeof(buf_usage) };
+
+	char buf_price[64];
+	SgStringBuffer sb_price = { buf_price, 0, sizeof(buf_price) };
+
+	int X0 = 10;
+	int X1 = 220;
+	int X2 = 430;
+	int H = 30;
+	int W = 200;
+	int YS = 40;
 
 	while(sg_running())
 	{
 		sg_begin();
 
-		sg_render_string(sg_point(10, 10), "Hello World!", SG_BLACK);
+		int Y = 10;
 
-		sg_select(sg_rect(10, 50, 200, 30), items, SG_ARRLEN(items), &cur);
-		sg_textbox(sg_rect(10, 100, 200, 30), &sb);
-		sg_slider(sg_rect(10, 150, 800, 24), &value, 0.0, 100.0);
-		sg_checkbox(sg_rect(10, 200, 22, 22), &checked);
-		sg_button(sg_rect(10, 250, 200, 30), "Click Me!");
+		sg_label(sg_rect(X0, Y, W, H), "Typical Appliance:", SG_CENTER_RIGHT);
+		sg_select(sg_rect(X1, Y, W, H), appliance, SG_ARRLEN(appliance), &appliance_sel);
+		Y += YS;
+
+		sg_label(sg_rect(X0, Y, W, H), "Appliance Power:", SG_CENTER_RIGHT);
+		sg_textbox(sg_rect(X1, Y, W, H), &sb_power);
+		sg_select(sg_rect(X2, Y, W, H), power_unit, SG_ARRLEN(power_unit), &power_unit_sel);
+		Y += YS;
+
+		sg_label(sg_rect(X0, Y, W, H), "Use/run at:", SG_CENTER_RIGHT);
+		sg_textbox(sg_rect(X1, Y, W, H), &sb_capacity);
+		sg_label(sg_rect(X2, Y, W, H), "% capacity", SG_CENTER_LEFT);
+		Y += YS;
+
+		sg_label(sg_rect(X0, Y, W, H), "Usage:", SG_CENTER_RIGHT);
+		sg_textbox(sg_rect(X1, Y, W, H), &sb_usage);
+		sg_select(sg_rect(X2, Y, W, H), time_unit, SG_ARRLEN(time_unit), &time_unit_sel);
+		Y += YS;
+
+		sg_label(sg_rect(X0, Y, W, H), "Electricity Price:", SG_CENTER_RIGHT);
+		sg_textbox(sg_rect(X1, Y, W, H), &sb_price);
+		sg_label(sg_rect(X2, Y, W, H), "\xFF per kWh", SG_CENTER_LEFT);
+		Y += YS;
+
+		sg_button(sg_rect(X1, Y, W, H), "Calculate");
+		sg_button(sg_rect(X2, Y, W, H), "Clear");
 
 		sg_update();
 	}

@@ -15,7 +15,7 @@ enum
 ### Is Mouse Button down?
 
 ```c
-int sg_is_mouse_button_down(int button);
+bool sg_is_mouse_button_down(int button);
 ```
 
 Returns true if specified mouse button is currently down.
@@ -23,7 +23,7 @@ Returns true if specified mouse button is currently down.
 ### Was Mouse Button pressed?
 
 ```c
-int sg_is_mouse_button_pressed(int button);
+bool sg_is_mouse_button_pressed(int button);
 ```
 
 Returns true if specified mouse button was pressed this frame.
@@ -31,7 +31,7 @@ Returns true if specified mouse button was pressed this frame.
 ### Was Mouse Button released?
 
 ```c
-int sg_is_mouse_button_released(int button);
+bool sg_is_mouse_button_released(int button);
 ```
 
 Returns true if specified mouse button was released this frame.

@@ -8,3 +8,6 @@ all:
 	cd examples/simple-select/ && make $@
 	cd examples/simple-slider/ && make $@
 	cd examples/simple-textbox/ && make $@
+	cd examples/styling/ && make $@
+	cd examples/power-usage-calc/ && make $@
+	cd examples/controller/ && make $@

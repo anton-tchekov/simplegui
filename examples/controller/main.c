@@ -4,13 +4,13 @@
 #include "../../simplegui.h"
 
 #define MAX_CHAR_SIZE 64
-#define FONT_SIZE     14
+#define FONT_SIZE     32
 
 #define FONT_FILE       "../fonts/arial.ttf"
 
 int main(void)
 {
-	sg_init(sg_size(640, 480), "SimpleGUI Styling Elements");
+	sg_init(sg_size(640, 480), "Controller");
 
 	SgFont font = sg_font_load(FONT_FILE, FONT_SIZE);
 	if(!font)
@@ -21,6 +21,16 @@ int main(void)
 
 	SgFontAtlas fontatlas = sg_font_atlas_create(MAX_CHAR_SIZE, FONT_SIZE);
 	sg_fontatlas_add_ascii(fontatlas, font);
+	sg_fontatlas_add_icon(fontatlas, "up_left.png", 200);
+	sg_fontatlas_add_icon(fontatlas, "up.png", 201);
+	sg_fontatlas_add_icon(fontatlas, "up_right.png", 202);
+	sg_fontatlas_add_icon(fontatlas, "left.png", 203);
+	sg_fontatlas_add_icon(fontatlas, "center.png", 204);
+	sg_fontatlas_add_icon(fontatlas, "right.png", 205);
+	sg_fontatlas_add_icon(fontatlas, "down_left.png", 206);
+	sg_fontatlas_add_icon(fontatlas, "down.png", 207);
+	sg_fontatlas_add_icon(fontatlas, "down_right.png", 208);
+
 	sg_fontatlas_add_default_icons(fontatlas);
 	sg_fontatlas_update(fontatlas);
 	sg_font_destroy(font);
@@ -78,45 +88,27 @@ int main(void)
 
 	sg_theme = &theme;
 
-	char buf[64] = "Hello world";
-	SgStringBuffer sb =
-	{
-		.buffer = buf,
-		.length = 11,
-		.capacity = sizeof(buf)
-	};
-
-	bool checked = true;
-	double value = 0.0;
-
-	size_t cur = 1;
-	const char *items[] =
-	{
-		"January",
-		"February",
-		"March",
-		"April",
-		"May",
-		"June",
-		"July",
-		"August",
-		"September",
-		"October",
-		"November",
-		"December"
-	};
+	int D = 10;
+	int S = 80;
+	int O = S + D;
 
 	while(sg_running())
 	{
 		sg_begin();
 
-		sg_render_string(sg_point(10, 10), "Hello World!", SG_BLACK);
+		sg_label(sg_rect(D, D, 0, 0), "Controller", SG_TOP_LEFT);
 
-		sg_select(sg_rect(10, 50, 200, 30), items, SG_ARRLEN(items), &cur);
-		sg_textbox(sg_rect(10, 100, 200, 30), &sb);
-		sg_slider(sg_rect(10, 150, 800, 24), &value, 0.0, 100.0);
-		sg_checkbox(sg_rect(10, 200, 22, 22), &checked);
-		sg_button(sg_rect(10, 250, 200, 30), "Click Me!");
+		for(int y = 0; y < 3; ++y)
+		{
+			for(int x = 0; x < 3; ++x)
+			{
+				char text[] = { 200 + 3*y + x, '\0' };
+				if(sg_button(sg_rect(D + x * O, 2*D+FONT_SIZE + y * O, S, S), text))
+				{
+					printf("%d %d clicked\n", x, y);
+				}
+			}
+		}
 
 		sg_update();
 	}
