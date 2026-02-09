@@ -357,25 +357,48 @@ enum
 
 typedef struct
 {
+	/* Window */
 	SgColor WindowBackgroundColor;
-	SgColor TextColor[3];
-	SgColor InnerColor[3];
+
+	/* Label */
+	SgColor LabelTextColor;
+
+	/* Button */
+	SgColor ButtonTextColor[3];
 	SgColor ButtonInnerColor[3];
-	SgColor TextboxInnerColor[3];
+	SgColor ButtonBorderColor[3];
+	int ButtonBorderThickness[3];
+
+	/* Checkbox */
+	SgColor CheckboxIconColor[3];
 	SgColor CheckboxInnerColor[3];
-	SgColor BorderColor[3];
+	SgColor CheckboxBorderColor[3];
+	int CheckboxBorderThickness[3];
+
+	/* Textbox */
+	SgColor TextboxTextColor[3];
+	SgColor TextboxInnerColor[3];
+	SgColor TextboxBorderColor[3];
+	int TextboxBorderThickness[3];
+	int TextboxPaddingX;
+	SgRect Cursor;
+	SgColor CursorColor;
+	SgColor SelectionColor;
+	SgColor SelectionTextColor;
+
+	/* Slider */
 	SgColor SliderThumbColor[3];
 	SgColor SliderRailColor[3];
 	int SliderThumbWidth;
 	int SliderRailHeight;
-	int TextboxPaddingX;
+
+	/* Select */
+	SgColor SelectTextColor[3];
+	SgColor SelectInnerColor[3];
+	SgColor SelectBorderColor[3];
+	int SelectBorderThickness[3];
 	int SelectPageItems;
 	int SelectPaddingX;
-	int BorderThickness[3];
-	SgRect Cursor;
-	SgColor SelectionColor;
-	SgColor SelectionTextColor;
-	SgColor CursorColor;
 } SgTheme;
 
 void sg_init(SgSize size, const char *title);
@@ -1399,25 +1422,48 @@ int sg_key_to_codepoint_german(int k)
 
 SgTheme sg_default_theme =
 {
+	/* Window */
 	.WindowBackgroundColor = 0x100000,
-	.TextColor = { 0xff8200, 0xff8200, 0xff8200 },
-	.InnerColor = { 0x310000, 0x7b0000, 0x510000 },
+
+	/* Label */
+	.LabelTextColor = 0xff8200,
+
+	/* Button */
+	.ButtonTextColor = { 0xff8200, 0xff8200, 0xff8200 },
 	.ButtonInnerColor = { 0x310000, 0x7b0000, 0x510000 },
-	.TextboxInnerColor = { 0x310000, 0x7b0000, 0x510000 },
+	.ButtonBorderColor = { 0x7b0000, 0xff8200, 0xff8200 },
+	.ButtonBorderThickness = { 2, 2, 1 },
+
+	/* Checkbox */
+	.CheckboxIconColor = { 0xff8200, 0xff8200, 0xff8200 },
 	.CheckboxInnerColor = { 0x310000, 0x7b0000, 0x510000 },
-	.BorderColor = { 0x7b0000, 0xff8200, 0xff8200 },
+	.CheckboxBorderColor = { 0x7b0000, 0xff8200, 0xff8200 },
+	.CheckboxBorderThickness = { 2, 2, 1 },
+
+	/* Textbox */
+	.TextboxTextColor = { 0xff8200, 0xff8200, 0xff8200 },
+	.TextboxInnerColor = { 0x310000, 0x7b0000, 0x510000 },
+	.TextboxBorderColor = { 0x7b0000, 0xff8200, 0xff8200 },
+	.TextboxBorderThickness = { 2, 2, 1 },
+	.TextboxPaddingX = 5,
+	.Cursor = { 0, 0, 2, 0 },
+	.CursorColor = 0xff8200,
+	.SelectionColor = 0xff8200,
+	.SelectionTextColor = 0x310000,
+
+	/* Slider */
 	.SliderThumbColor = { 0x7b0000, 0xff8200, 0xffb200 },
 	.SliderRailColor = { 0x510000, 0x7b0000, 0x9b0000 },
 	.SliderThumbWidth = 6,
 	.SliderRailHeight = 6,
-	.TextboxPaddingX = 5,
+
+	/* Select */
+	.SelectTextColor = { 0xff8200, 0xff8200, 0xff8200 },
+	.SelectInnerColor = { 0x310000, 0x7b0000, 0x510000 },
+	.SelectBorderColor = { 0x7b0000, 0xff8200, 0xff8200 },
+	.SelectBorderThickness = { 2, 2, 1 },
 	.SelectPageItems = 5,
 	.SelectPaddingX = 10,
-	.BorderThickness = { 2, 2, 1 },
-	.Cursor = { 0, 0, 2, 0 },
-	.SelectionColor = 0xff8200,
-	.SelectionTextColor = 0x310000,
-	.CursorColor = 0xff8200
 };
 
 SgTheme *sg_theme = &sg_default_theme;
@@ -1444,13 +1490,14 @@ bool sg_rect_contains_mouse(SgRect rect)
 
 /* ========================================================================== */
 /* common functions for controls */
-void sg_box(SgRect d, int index, SgColor *inner_color)
+void sg_box(SgRect d, int index, SgColor *inner_color,
+	SgColor *border_color, int *border_thickness)
 {
-	int border = sg_theme->BorderThickness[index];
+	int border = border_thickness[index];
 	SgRect inner = { d.x + border, d.y + border, d.w - 2 * border, d.h - 2 * border };
 
 	sg_fill_rect(inner, inner_color[index]);
-	sg_draw_rect(d, border, sg_theme->BorderColor[index]);
+	sg_draw_rect(d, border, border_color[index]);
 }
 
 bool sg_clicked(SgRect d, int *index)
@@ -1464,26 +1511,22 @@ bool sg_clicked(SgRect d, int *index)
 bool sg_selected(SgRect d, int *index, bool *state)
 {
 	bool hover = sg_rect_contains_mouse(d);
-	bool sel = *state && sg_rect_contains_point(d, _sg_selected_point);
-	bool down = sg_is_mouse_button_down(SG_BUTTON_LEFT);
-	bool pressed = hover && down;
-	if(pressed)
+	if(hover && sg_is_mouse_button_down(SG_BUTTON_LEFT))
 	{
 		*state = true;
 		_sg_selected_point = sg_mouse_position();
 	}
 
-	bool active = pressed || sel;
-	*index = active ? SG_INDEX_ACTIVE : (hover ? SG_INDEX_HOVER : SG_INDEX_DEFAULT);
-	return active;
+	bool sel = *state && sg_rect_contains_point(d, _sg_selected_point);
+	*index = sel ? SG_INDEX_ACTIVE : (hover ? SG_INDEX_HOVER : SG_INDEX_DEFAULT);
+	return sel;
 }
 
 /* ========================================================================== */
 /* sg_label */
 void sg_label(SgRect d, const char *text, int flags)
 {
-	sg_render_string_in_rect(d, text, flags,
-		sg_theme->TextColor[SG_INDEX_DEFAULT]);
+	sg_render_string_in_rect(d, text, flags, sg_theme->LabelTextColor);
 }
 
 /* ========================================================================== */
@@ -1493,8 +1536,9 @@ bool sg_button(SgRect d, const char *text)
 	int index;
 	bool clicked = sg_clicked(d, &index);
 
-	sg_box(d, index, sg_theme->ButtonInnerColor);
-	sg_render_string_in_rect(d, text, SG_CENTER, sg_theme->TextColor[index]);
+	sg_box(d, index, sg_theme->ButtonInnerColor,
+		sg_theme->ButtonBorderColor, sg_theme->ButtonBorderThickness);
+	sg_render_string_in_rect(d, text, SG_CENTER, sg_theme->ButtonTextColor[index]);
 
 	return clicked;
 }
@@ -1516,11 +1560,12 @@ bool sg_checkbox(SgRect d, bool *checked)
 	int index;
 	bool clicked = sg_clicked(d, &index);
 
-	sg_box(d, index, sg_theme->CheckboxInnerColor);
+	sg_box(d, index, sg_theme->CheckboxInnerColor,
+		sg_theme->CheckboxBorderColor, sg_theme->CheckboxBorderThickness);
 	if(*checked)
 	{
 		sg_render_char_in_rect(d, sg_get_checkmark_char(),
-			SG_CENTER, sg_theme->TextColor[index]);
+			SG_CENTER, sg_theme->CheckboxIconColor[index]);
 	}
 
 	if(clicked)
@@ -1576,20 +1621,21 @@ int sg_select(SgRect d, const char *items[], size_t count, size_t *current)
 	int index;
 	bool selected = sg_selected(d, &index, &_sg_selected);
 
-	sg_box(d, index, sg_theme->InnerColor);
+	sg_box(d, index, sg_theme->SelectInnerColor,
+		sg_theme->SelectBorderColor, sg_theme->SelectBorderThickness);
 
 	sg_render_string(
 		sg_point(d.x + sg_theme->SelectPaddingX, d.y + d.h / 2 - _sg_fontatlas->FontHeight / 2),
-		items[*current], sg_theme->TextColor[index]);
+		items[*current], sg_theme->SelectTextColor[index]);
 
 	sg_render_char_align(
 		sg_point(d.x + d.w - sg_theme->SelectPaddingX, d.y + d.h / 2),
-		sg_get_select_char(), SG_CENTER_RIGHT, sg_theme->TextColor[index]);
+		sg_get_select_char(), SG_CENTER_RIGHT, sg_theme->SelectTextColor[index]);
 
 	if(selected)
 	{
 		int elems = sg_min(sg_theme->SelectPageItems, count);
-		int step_y = d.h - sg_theme->BorderThickness[SG_INDEX_DEFAULT];
+		int step_y = d.h - sg_theme->SelectBorderThickness[SG_INDEX_DEFAULT];
 		int total_h = elems * step_y;
 
 		if(d.x + d.h + total_h > sg_get_window_size().h && d.x - total_h > 0)
@@ -1602,11 +1648,12 @@ int sg_select(SgRect d, const char *items[], size_t count, size_t *current)
 		{
 			b.y += step_y;
 
-			sg_box(b, index, sg_theme->InnerColor);
+			sg_box(b, index, sg_theme->SelectInnerColor,
+				sg_theme->SelectBorderColor, sg_theme->SelectBorderThickness);
 			sg_render_string(
 				sg_point(b.x + sg_theme->SelectPaddingX,
 					b.y + b.h / 2 - _sg_fontatlas->FontHeight / 2),
-				items[i], sg_theme->TextColor[index]);
+				items[i], sg_theme->SelectTextColor[index]);
 		}
 	}
 
@@ -1908,7 +1955,7 @@ int sg_textbox(SgRect d, SgStringBuffer *sb)
 	int result = 0;
 	int index;
 	bool selected = sg_selected(d, &index, &_sg_selected);
-	SgColor text_color = sg_theme->TextColor[index];
+	SgColor text_color = sg_theme->TextboxTextColor[index];
 
 	if(selected)
 	{
@@ -1954,7 +2001,8 @@ int sg_textbox(SgRect d, SgStringBuffer *sb)
 		result = sg_textbox_key_events(sb);
 	}
 
-	sg_box(d, index, sg_theme->TextboxInnerColor);
+	sg_box(d, index, sg_theme->TextboxInnerColor,
+		sg_theme->TextboxBorderColor, sg_theme->TextboxBorderThickness);
 
 	int text_y = d.y + d.h / 2 - _sg_fontatlas->FontHeight / 2;
 

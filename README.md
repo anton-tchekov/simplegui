@@ -10,6 +10,7 @@ This project is work in progress, most of the functionality
 is still missing:
 
 - Select element
+	- Click again to deselect
 	- Overlay above other elements (render at end)
 	- Scroll bar (indicator) -> scroll wheel
 	- Styling

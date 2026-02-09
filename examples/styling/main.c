@@ -28,25 +28,48 @@ int main(void)
 
 	SgTheme theme =
 	{
+		/* Window */
 		.WindowBackgroundColor = 0xf0f0f0,
-		.TextColor = { 0x000000, 0x000000, 0x000000 },
-		.InnerColor = { 0xe1e1e1, 0xdddddd, 0xcccccc },
+
+		/* Label */
+		.LabelTextColor = 0x000000,
+
+		/* Button */
+		.ButtonTextColor = { 0x000000, 0x000000, 0x000000 },
 		.ButtonInnerColor = { 0xe1e1e1, 0xdddddd, 0xcccccc },
-		.TextboxInnerColor = { 0xFFFFFF, 0xFFFFFF, 0xFFFFFF },
+		.ButtonBorderColor ={ 0xadadad, 0x777777, 0x52a9fd },
+		.ButtonBorderThickness = { 1, 1, 2 },
+
+		/* Checkbox */
+		.CheckboxIconColor = { SG_GREEN, SG_GREEN, SG_GREEN },
 		.CheckboxInnerColor = { 0xFFFFFF, 0xFFFFFF, 0xFFFFFF },
-		.BorderColor = { 0xadadad, 0x777777, 0x52a9fd },
+		.CheckboxBorderColor = { 0xadadad, 0x777777, 0x52a9fd },
+		.CheckboxBorderThickness = { 1, 1, 2 },
+
+		/* Textbox */
+		.TextboxTextColor = { 0x000000, 0x000000, 0x000000 },
+		.TextboxInnerColor = { 0xFFFFFF, 0xFFFFFF, 0xFFFFFF },
+		.TextboxBorderColor = { 0xadadad, 0x777777, 0x52a9fd },
+		.TextboxBorderThickness = { 1, 1, 2 },
+		.TextboxPaddingX = 5,
+		.Cursor = { -1, -1, 1, 2 },
+		.CursorColor = 0x000000,
+		.SelectionColor = 0x3399ff,
+		.SelectionTextColor = 0xffffff,
+
+		/* Slider */
 		.SliderThumbColor = { 0x999999, 0x888888, 0x52a9fd },
 		.SliderRailColor = { 0xcccccc, 0xbbbbbb, 0xaaaaaa },
 		.SliderThumbWidth = 6,
-		.SliderRailHeight = 6,
-		.TextboxPaddingX = 5,
+		.SliderRailHeight = 4,
+
+		/* Select */
+		.SelectTextColor = { 0x000000, 0x000000, 0x000000 },
+		.SelectInnerColor = { 0xe1e1e1, 0xdddddd, 0xcccccc },
+		.SelectBorderColor = { 0xadadad, 0x777777, 0x52a9fd },
+		.SelectBorderThickness = { 1, 1, 2 },
 		.SelectPageItems = 5,
 		.SelectPaddingX = 10,
-		.BorderThickness = { 1, 1, 2 },
-		.Cursor = { -1, -1, 1, 2 },
-		.SelectionColor = 0x3399ff,
-		.SelectionTextColor = 0xffffff,
-		.CursorColor = 0x000000
 	};
 
 	sg_theme = &theme;
@@ -59,7 +82,7 @@ int main(void)
 		.capacity = sizeof(buf)
 	};
 
-	bool checked = false;
+	bool checked = true;
 	double value = 0.0;
 
 	size_t cur = 1;
@@ -87,8 +110,8 @@ int main(void)
 
 		sg_select(sg_rect(10, 50, 200, 30), items, SG_ARRLEN(items), &cur);
 		sg_textbox(sg_rect(10, 100, 200, 30), &sb);
-		sg_slider(sg_rect(10, 150, 800, 30), &value, 0.0, 100.0);
-		sg_checkbox(sg_rect(10, 200, 30, 30), &checked);
+		sg_slider(sg_rect(10, 150, 800, 24), &value, 0.0, 100.0);
+		sg_checkbox(sg_rect(10, 200, 22, 22), &checked);
 		sg_button(sg_rect(10, 250, 200, 30), "Click Me!");
 
 		sg_update();
