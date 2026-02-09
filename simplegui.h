@@ -1734,6 +1734,7 @@ static void sg_textbox_left(void)
 {
 	if(_sg_tb_selection != _sg_tb_position)
 	{
+		_sg_tb_position = sg_min(_sg_tb_position, _sg_tb_selection);
 		_sg_tb_selection = _sg_tb_position;
 	}
 	else if(_sg_tb_position > 0)
@@ -1755,6 +1756,7 @@ static void sg_textbox_right(SgStringBuffer *sb)
 {
 	if(_sg_tb_selection != _sg_tb_position)
 	{
+		_sg_tb_position = sg_max(_sg_tb_position, _sg_tb_selection);
 		_sg_tb_selection = _sg_tb_position;
 	}
 	else if(_sg_tb_position < (int)sb->length)
@@ -1912,22 +1914,22 @@ int sg_textbox(SgRect d, SgStringBuffer *sb)
 		{
 			if(sg_triple_click)
 			{
-				_sg_tb_position = 0;
-				_sg_tb_selection = sb->length;
+				_sg_tb_position = sb->length;
+				_sg_tb_selection = 0;
 				_sg_tb_multi_clicked = true;
 			}
 			else if(sg_double_click)
 			{
 				_sg_tb_position = sg_textbox_click(sb, sg_mouse_position().x, d.x);
 
-				for(_sg_tb_selection = _sg_tb_position;
-					_sg_tb_selection < (int)sb->length && !sg_char_stop(sb->buffer[_sg_tb_selection]);
-					++_sg_tb_selection)
+				for(; _sg_tb_position < (int)sb->length && !sg_char_stop(sb->buffer[_sg_tb_position]);
+					++_sg_tb_position)
 				{
 				}
 
-				for(; _sg_tb_position > 0 && !sg_char_stop(sb->buffer[_sg_tb_position - 1]);
-					--_sg_tb_position)
+				for(_sg_tb_selection = _sg_tb_position;
+					_sg_tb_selection > 0 && !sg_char_stop(sb->buffer[_sg_tb_selection - 1]);
+					--_sg_tb_selection)
 				{
 				}
 

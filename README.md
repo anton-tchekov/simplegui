@@ -9,8 +9,6 @@ add to a project.
 This project is work in progress, most of the functionality
 is still missing:
 
-
-- Text select left/right key
 - Styling elements
 
 - Select element
