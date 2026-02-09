@@ -12,7 +12,6 @@ is still missing:
 - Select
 - Textbox
 
-- Text rendering ugly
 - Cursor sizing
 - Text select left/right key
 

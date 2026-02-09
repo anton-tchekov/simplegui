@@ -624,6 +624,7 @@ int sg_fontatlas_add_char(SgFontAtlas atlas, SgFont font, uint8_t c)
 	SDL_Color color = { 255, 255, 255, 0 };
 	char letter[2] = { c, '\0' };
 	SDL_Surface *s = TTF_RenderText_Blended(font, letter, color);
+	SDL_SetSurfaceBlendMode(s, SDL_BLENDMODE_NONE);
 	int status = sg_fontatlas_blit_surface(atlas, s, sg_rect(0, 0, s->w, s->h), c);
 	SDL_FreeSurface(s);
 	return status;
