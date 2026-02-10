@@ -68,10 +68,11 @@ int main(void)
 		.SelectInnerColor = { 0xe1e1e1, 0xdddddd, 0xcccccc },
 		.SelectBorderColor = { 0xadadad, 0x777777, 0x52a9fd },
 		.SelectBorderThickness = { 1, 1, 2 },
-		.SelectPageBorder = 0x333333,
+		.SelectPageBorderColor = 0x333333,
+		.SelectPageBorderThickness = 1,
 		.SelectItemInnerColor = { 0xFFFFFF, 0x3399ff },
 		.SelectItemTextColor = { 0x000000, 0xFFFFFF },
-		.SelectItemPadding = 2,
+		.SelectItemPadding = 3,
 		.SelectPageItems = 5,
 		.SelectPaddingX = 10,
 	};

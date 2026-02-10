@@ -9,11 +9,8 @@ add to a project.
 This project is work in progress, most of the functionality
 is still missing:
 
-- Mouse down style is laggy??? (mouse_down check)
-
 - Select element
 	- Click again to deselect
-	- Overlay above other elements (render at end)
 	- Scroll bar (indicator) -> scroll wheel
 	- Styling
 	- Choose selected element
@@ -22,7 +19,11 @@ is still missing:
 - Add Asserts / Error checks where missing
 - More complex example apps
 - Add screenshots
+
+- Textbox multiple clicks deselect bug
 - Textbox Overflow Bug
+- Textbox Right Align
+- Change Default Style
 
 ## Features
 

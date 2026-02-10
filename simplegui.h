@@ -397,7 +397,9 @@ typedef struct
 	SgColor SelectInnerColor[3];
 	SgColor SelectBorderColor[3];
 	int SelectBorderThickness[3];
-	SgColor SelectPageBorder;
+
+	SgColor SelectPageBorderColor;
+	int SelectPageBorderThickness;
 	SgColor SelectItemInnerColor[2];
 	SgColor SelectItemTextColor[2];
 	int SelectItemPadding;
@@ -409,6 +411,7 @@ void sg_init(SgSize size, const char *title);
 void sg_destroy(void);
 void sg_set_title(const char *title);
 void sg_begin(void);
+void sg_select_render_dropdown(void);
 void sg_update(void);
 bool sg_running(void);
 SgSize sg_get_window_size(void);
@@ -518,6 +521,12 @@ uint32_t sg_triple_click_time;
 bool sg_double_click;
 bool sg_triple_click;
 bool _sg_tb_multi_clicked = false;
+
+static const char **_sg_select_items;
+static size_t _sg_select_item_count;
+static size_t _sg_select_item_cur;
+static size_t _sg_select_item_start;
+static SgRect _sg_select_dim;
 
 #define SG_FONTDEBUG 0
 
@@ -1212,6 +1221,8 @@ static void sg_handle_key_up(SDL_Event *e)
 
 void sg_begin(void)
 {
+	_sg_select_items = NULL;
+
 	sg_double_click = false;
 	sg_triple_click = false;
 
@@ -1260,6 +1271,8 @@ void sg_begin(void)
 
 void sg_update(void)
 {
+	sg_select_render_dropdown();
+
 	SDL_RenderPresent(_sg_renderer);
 }
 
@@ -1467,10 +1480,11 @@ SgTheme sg_default_theme =
 	.SelectInnerColor = { 0x310000, 0x7b0000, 0x510000 },
 	.SelectBorderColor = { 0x7b0000, 0xff8200, 0xff8200 },
 	.SelectBorderThickness = { 2, 2, 1 },
-	.SelectPageBorder = 0x333333,
+	.SelectPageBorderColor = 0x333333,
+	.SelectPageBorderThickness = 1,
 	.SelectItemInnerColor = { 0xFFFFFF, 0x3399ff },
 	.SelectItemTextColor = { 0x000000, 0xFFFFFF },
-	.SelectItemPadding = 2,
+	.SelectItemPadding = 3,
 	.SelectPageItems = 5,
 	.SelectPaddingX = 10,
 };
@@ -1499,14 +1513,25 @@ bool sg_rect_contains_mouse(SgRect rect)
 
 /* ========================================================================== */
 /* common functions for controls */
+void sg_border_rect(SgRect d, SgColor inner, SgColor border, int thickness)
+{
+	SgRect inner_rect =
+	{
+		d.x + thickness,
+		d.y + thickness,
+		d.w - 2 * thickness,
+		d.h - 2 * thickness
+	};
+
+	sg_fill_rect(inner_rect, inner);
+	sg_draw_rect(d, thickness, border);
+}
+
 void sg_box(SgRect d, int index, SgColor *inner_color,
 	SgColor *border_color, int *border_thickness)
 {
-	int border = border_thickness[index];
-	SgRect inner = { d.x + border, d.y + border, d.w - 2 * border, d.h - 2 * border };
-
-	sg_fill_rect(inner, inner_color[index]);
-	sg_draw_rect(d, border, border_color[index]);
+	sg_border_rect(d, inner_color[index],
+		border_color[index], border_thickness[index]);
 }
 
 bool sg_clicked(SgRect d, int *index)
@@ -1626,15 +1651,66 @@ uint8_t sg_get_select_char(void)
 bool sg_select_selected(SgRect d, int *index)
 {
 	bool hover = sg_rect_contains_mouse(d);
-	if(hover && sg_is_mouse_button_pressed(SG_BUTTON_LEFT))
+	bool click = hover && sg_is_mouse_button_pressed(SG_BUTTON_LEFT);
+
+	bool sel = _sg_select_selected && sg_rect_contains_point(d, _sg_selected_point);
+	if(sel && click)
+	{
+		_sg_select_selected = false;
+	}
+	else if(click)
 	{
 		_sg_select_selected = !_sg_select_selected;
 		_sg_selected_point = sg_mouse_position();
+		sel = _sg_select_selected;
 	}
 
-	bool sel = _sg_select_selected && sg_rect_contains_point(d, _sg_selected_point);
 	*index = sel ? SG_INDEX_ACTIVE : (hover ? SG_INDEX_HOVER : SG_INDEX_DEFAULT);
 	return sel;
+}
+
+void sg_select_render_dropdown(void)
+{
+	if(!_sg_select_items)
+	{
+		return;
+	}
+
+	SgRect d = _sg_select_dim;
+	const char **items = _sg_select_items;
+	int count = _sg_select_item_count;
+	int cur = _sg_select_item_cur;
+	int start = _sg_select_item_start;
+
+	int num_elems = sg_min(sg_theme->SelectPageItems, count);
+	int elem_h = d.h - sg_theme->SelectItemPadding;
+	int total_h = num_elems * elem_h +
+		2 * sg_theme->SelectPageBorderThickness +
+		(num_elems + 1) * sg_theme->SelectItemPadding;
+
+	sg_border_rect(sg_rect(d.x, d.y + d.h, d.w, total_h),
+		sg_theme->SelectItemInnerColor[SG_INDEX_DEFAULT],
+		sg_theme->SelectPageBorderColor,
+		sg_theme->SelectPageBorderThickness);
+
+	SgRect b = sg_rect(
+		d.x + sg_theme->SelectItemPadding + sg_theme->SelectPageBorderThickness,
+		d.y + d.h + sg_theme->SelectPageBorderThickness + sg_theme->SelectItemPadding,
+		d.w - 2 * (sg_theme->SelectItemPadding + sg_theme->SelectPageBorderThickness),
+		d.h - sg_theme->SelectItemPadding);
+
+	for(int i = 0; i < num_elems; ++i, b.y += d.h)
+	{
+		if(i == cur)
+		{
+			sg_fill_rect(b, sg_theme->SelectItemInnerColor[SG_INDEX_HOVER]);
+		}
+
+		sg_render_string_in_rect(
+			sg_rect(d.x + sg_theme->SelectPaddingX, b.y, b.w, b.h),
+			items[i], SG_CENTER_LEFT,
+			sg_theme->SelectTextColor[i == cur ? SG_INDEX_HOVER : SG_INDEX_DEFAULT]);
+	}
 }
 
 int sg_select(SgRect d, const char *items[], size_t count, size_t *current)
@@ -1657,27 +1733,11 @@ int sg_select(SgRect d, const char *items[], size_t count, size_t *current)
 
 	if(selected)
 	{
-		int elems = sg_min(sg_theme->SelectPageItems, count);
-		int step_y = d.h - sg_theme->SelectBorderThickness[SG_INDEX_DEFAULT];
-		int total_h = elems * step_y;
-
-		if(d.x + d.h + total_h > sg_get_window_size().h && d.x - total_h > 0)
-		{
-			step_y = -step_y;
-		}
-
-		SgRect b = sg_rect(d.x, d.y, d.w, d.h);
-		for(int i = 0; i < elems; ++i)
-		{
-			b.y += step_y;
-
-			sg_box(b, index, sg_theme->SelectInnerColor,
-				sg_theme->SelectBorderColor, sg_theme->SelectBorderThickness);
-			sg_render_string(
-				sg_point(b.x + sg_theme->SelectPaddingX,
-					b.y + b.h / 2 - _sg_fontatlas->FontHeight / 2),
-				items[i], sg_theme->SelectTextColor[index]);
-		}
+		_sg_select_items = items;
+		_sg_select_item_count = count;
+		_sg_select_item_cur = *current;
+		_sg_select_dim = d;
+		_sg_select_item_start = 0; // TODO
 	}
 
 	return 0;
